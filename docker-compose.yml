@@ -1,0 +1,23 @@
+services:
+  # 1. Gateway (Nginx)
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  # 2. API Server (Spring Boot)
+  api:
+    image: openjdk:17-jdk-slim # 아직 API 빌드 전이므로 임시 이미지 사용
+    container_name: api
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
