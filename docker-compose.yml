@@ -13,7 +13,9 @@ services:
 
   # 2. API Server (Spring Boot)
   api:
-    image: openjdk:17-jdk-slim # 아직 API 빌드 전이므로 임시 이미지 사용
+    build:
+      context: ./services/api # 여기를 수정! (api 폴더 안을 바라보게 함)
+      dockerfile: Dockerfile # 해당 폴더 안의 Dockerfile 사용
     container_name: api
     networks:
       - app-network
