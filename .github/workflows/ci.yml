@@ -41,14 +41,3 @@ jobs:
       - name: Build Batch
         run: ./gradlew clean build
         working-directory: services/batch
-
-      # =========================
-      # ✅ Gateway
-      # =========================
-      - name: Grant execute permission for Gateway gradlew
-        run: chmod +x gradlew
-        working-directory: services/gateway
-
-      - name: Build Gateway
-        run: ./gradlew clean build
-        working-directory: services/gateway

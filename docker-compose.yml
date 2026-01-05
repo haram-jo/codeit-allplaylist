@@ -20,6 +20,18 @@ services:
     networks:
       - app-network
 
+  # 3. Batch (Spring Batch)
+  batch:
+    build:
+      context: ./services/batch
+      dockerfile: Dockerfile
+    container_name: batch
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+
 networks:
   app-network:
     driver: bridge
