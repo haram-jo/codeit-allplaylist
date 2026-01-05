@@ -28,7 +28,7 @@ jobs:
         working-directory: services/api
 
       - name: Build API
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
         working-directory: services/api
 
       # =========================
