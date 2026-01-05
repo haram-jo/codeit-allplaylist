@@ -35,7 +35,7 @@ dependencies {
 
 	// ✅ 순서 변경: starter-test를 먼저 선언하면 버전 관리(BOM)가 더 안정적으로 잡힙니다.
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-batch-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-batch-test:3.4.1' // 버전을 직접 작성
 
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
