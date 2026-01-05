@@ -27,11 +27,16 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
 	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-batch-test'
+
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// ✅ 순서 변경: starter-test를 먼저 선언하면 버전 관리(BOM)가 더 안정적으로 잡힙니다.
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-batch-test'
+
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
