@@ -20,12 +20,35 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # gradlew 파일이 있는 폴더로 가서 권한 부여
-      - name: Grant execute permission for gradlew
+      # =========================
+      # ✅ API
+      # =========================
+      - name: Grant execute permission for API gradlew
         run: chmod +x gradlew
         working-directory: services/api
 
-      # gradlew 파일이 있는 폴더로 가서 빌드 실행
-      - name: Build with Gradle
+      - name: Build API
         run: ./gradlew clean build
         working-directory: services/api
+
+      # =========================
+      # ✅ Batch
+      # =========================
+      - name: Grant execute permission for Batch gradlew
+        run: chmod +x gradlew
+        working-directory: services/batch
+
+      - name: Build Batch
+        run: ./gradlew clean build
+        working-directory: services/batch
+
+      # =========================
+      # ✅ Gateway
+      # =========================
+      - name: Grant execute permission for Gateway gradlew
+        run: chmod +x gradlew
+        working-directory: services/gateway
+
+      - name: Build Gateway
+        run: ./gradlew clean build
+        working-directory: services/gateway
