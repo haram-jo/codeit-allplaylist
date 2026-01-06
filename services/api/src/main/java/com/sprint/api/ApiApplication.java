@@ -2,7 +2,9 @@ package com.sprint.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+@EnableJpaAuditing // 시간 자동으로 들어가게 해주는 어노테이션
 @SpringBootApplication
 public class ApiApplication {
 

@@ -29,6 +29,9 @@ dependencies {
 
 	// ✅ H2 ( 로컬에서 DB없이 실행용)
 	runtimeOnly 'com.h2database:h2'
+
+	// ✅ JPA (DB 설정 읽기)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
