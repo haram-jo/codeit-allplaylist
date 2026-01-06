@@ -1,19 +1,17 @@
 package com.sprint.api.entity;
 
+import com.sprint.api.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
 /* @Data 지양
 * 무분별한 @Setter로 인해 엔티티값 변경을 방지기 위해 사용하지 않음
@@ -23,7 +21,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseEntity {
 
   @Id
   @Column(length = 36)
@@ -52,13 +50,6 @@ public class User {
 
   @Column(name = "provider_user_id")
   private String providerUserId; //제공한 사용자 ID
-
-  @CreatedDate // 생성시 자동 기록
-  @Column(updatable = false)
-  private LocalDateTime createdAt;
-
-  @LastModifiedDate // 수정시 자동 기록
-  private LocalDateTime updatedAt;
 
   @Builder // 실제 값 넣은 필드만 토대로 객체가 생성됨, 순서 상관X
   public User(String name, String email, String password, UserRole role, boolean locked,
