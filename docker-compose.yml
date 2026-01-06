@@ -10,6 +10,9 @@ services:
       - api
     networks:
       - app-network
+      - 
+  
+  #1-1. MySQL 붙이고나서 추가해줘야 함
 
   # 2. API Server (Spring Boot)
   api:
