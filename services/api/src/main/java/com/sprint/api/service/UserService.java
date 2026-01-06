@@ -8,6 +8,7 @@ import com.sprint.api.dto.UserLockUpdateRequest;
 import com.sprint.api.dto.UserRoleUpdateRequest;
 import com.sprint.api.dto.UserUpdateRequest;
 import com.sprint.api.entity.User;
+import com.sprint.api.entity.UserRole;
 import com.sprint.api.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -52,32 +52,37 @@ public class User extends BaseEntity {
   private String providerUserId; //제공한 사용자 ID
 
   @Builder // 실제 값 넣은 필드만 토대로 객체가 생성됨, 순서 상관X
-  public User(String name, String email, String password, UserRole role, boolean locked,
-              String profileImageUrl, String authProvider, String providerUserId) {
+  public User(String name, String email, String password, UserRole role, Boolean locked,
+      String profileImageUrl, String authProvider, String providerUserId) {
+
     this.name = name;
     this.email = email;
     this.password = password;
-    this.role = role;
-    this.locked = locked;
+    this.role = (role != null) ? role : UserRole.USER; //role 값 null이면 USER로
+    this.locked = (locked != null) ? locked : false; //locked 값 null이면 false로
     this.profileImageUrl = profileImageUrl;
     this.authProvider = authProvider;
     this.providerUserId = providerUserId;
-    }
+  }
 
   //유저 이름 변경
   public void changeName(String name) {
+    this.name = name;
   }
 
   //유저 권한 변경
   public void changeRole(UserRole role) {
+    this.role = role;
   }
 
   //유저 비밀번호 변경
-  public void changePassword(String s) {
+  public void changePassword(String spassword) {
+    this.password = password;
   }
 
   //유저 잠금 상태 변경
   public void changeLocked(boolean locked) {
+    this.locked = locked;
   }
 }
 
