@@ -1,13 +1,12 @@
 package com.sprint.api.dto;
 
 import com.sprint.api.entity.UserRole;
-import java.time.OffsetDateTime;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 public record UserDto (
 
-    UUID id,
-    OffsetDateTime createdAt, // 날짜+시간+시차
+    String id,
+    LocalDateTime createdAt,
     String email,
     String name,
     String profileImageUrl,

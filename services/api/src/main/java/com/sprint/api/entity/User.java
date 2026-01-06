@@ -63,6 +63,22 @@ public class User extends BaseEntity {
     this.authProvider = authProvider;
     this.providerUserId = providerUserId;
     }
+
+  //유저 이름 변경
+  public void changeName(String name) {
+  }
+
+  //유저 권한 변경
+  public void changeRole(UserRole role) {
+  }
+
+  //유저 비밀번호 변경
+  public void changePassword(String s) {
+  }
+
+  //유저 잠금 상태 변경
+  public void changeLocked(boolean locked) {
+  }
 }
 
 
