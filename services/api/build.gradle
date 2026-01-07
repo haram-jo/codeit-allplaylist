@@ -33,6 +33,10 @@ dependencies {
 	// ✅ JPA (DB 설정 읽기)
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// ✅ MySql
+	implementation 'com.mysql:mysql-connector-j'
+
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'

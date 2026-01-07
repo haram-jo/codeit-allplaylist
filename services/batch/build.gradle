@@ -36,6 +36,8 @@ dependencies {
 	// ✅ Batch 테스트는 Boot starter가 아니라 Spring Batch 테스트 모듈을 사용
 	testImplementation 'org.springframework.batch:spring-batch-test'
 
+	// ✅ MySql
+	implementation 'com.mysql:mysql-connector-j'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

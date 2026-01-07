@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/api.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/codeit-allplaylist.iml" filepath="$PROJECT_DIR$/.idea/codeit-allplaylist.iml" />
     </modules>
   </component>
 </project>
