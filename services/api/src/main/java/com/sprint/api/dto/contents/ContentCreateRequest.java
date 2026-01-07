@@ -19,6 +19,5 @@ public record ContentCreateRequest(
         @NotBlank(message = "설명은 필수입니다.")
         String description,
 
-        @NotNull(message = "태그 목록은 필수입니다.")
         List<String> tags
 ) {}

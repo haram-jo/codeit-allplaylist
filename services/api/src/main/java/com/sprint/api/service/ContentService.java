@@ -20,15 +20,15 @@ public interface ContentService {
             SortDirection sortDirection
     );
 
-    // [어드민] 콘텐츠 생성
+    // 콘텐츠 생성(어드민)
     ContentDto createContent(ContentCreateRequest request, MultipartFile thumbnail);
 
     // 콘텐츠 단건 상세 조회
     ContentDto getContent(UUID contentId);
 
-    // [어드민] 콘텐츠 수정
+    // 콘텐츠 수정 (어드민)
     ContentDto updateContent(UUID contentId, ContentUpdateRequest request, MultipartFile thumbnail);
 
-    // [어드민] 콘텐츠 삭제
+    // 콘텐츠 삭제 (어드민)
     void deleteContent(UUID contentId);
 }

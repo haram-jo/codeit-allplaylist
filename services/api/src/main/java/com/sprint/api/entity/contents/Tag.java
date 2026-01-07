@@ -18,4 +18,10 @@ public class Tag {
 
     @Column(nullable = false, unique = true)
     private String tag; // 사람이 읽는 이름 (예: "액션", "스릴러")
+
+    // 태그가 없을 경우 ServiceImpl에서 new Tag(tagName)하기 위한 메서드
+    public Tag(String tag) {
+        this.tag = tag;
+    }
 }
+
