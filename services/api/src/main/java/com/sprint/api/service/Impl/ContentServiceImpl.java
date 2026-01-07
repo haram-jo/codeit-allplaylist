@@ -137,8 +137,9 @@ public class ContentServiceImpl implements ContentService {
 
     // --- 나머지 기능들 (조회, 수정, 삭제) ---
 
-    /**
-     * 콘텐츠 단건 조회
+    /** 콘텐츠 수정
+     *  - 썸네일 새로 업로드시 교체
+     *  - 교체되지 않았으면 기존 것 유지
      */
     @Override
     public ContentDto getContent(UUID contentId) {
@@ -157,13 +158,17 @@ public class ContentServiceImpl implements ContentService {
 
     }
 
-    @Override
-    public CursorResponseContentDto getContents(String typeEqual, String keywordLike, List<String> tagsIn, String cursor, UUID idAfter, int limit, String sortBy, SortDirection sortDirection) {
-        return null;
-    }
+ /**
+     * 콘텐츠 수정
+     */
     @Override
     @Transactional
     public ContentDto updateContent(UUID contentId, ContentUpdateRequest request, MultipartFile thumbnail) {
+        return null;
+    }
+
+    @Override
+    public CursorResponseContentDto getContents(String typeEqual, String keywordLike, List<String> tagsIn, String cursor, UUID idAfter, int limit, String sortBy, SortDirection sortDirection) {
         return null;
     }
 }

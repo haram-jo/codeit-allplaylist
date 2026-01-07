@@ -64,7 +64,7 @@ public class ContentController {
     public ContentDto updateContent(
             @PathVariable UUID contentId,
             @RequestPart("request") @Valid ContentUpdateRequest request,
-            @RequestPart(value = "thumbnail") MultipartFile thumbnail
+            @RequestPart(name = "thumbnail", required = false) MultipartFile thumbnail
     ) {
         return contentService.updateContent(contentId, request, thumbnail);
     }
