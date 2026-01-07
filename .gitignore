@@ -19,3 +19,9 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# 루트 uploads / thumbnails 폴더 전체 제외
+/uploads/
+/thumbnails/
+
+
