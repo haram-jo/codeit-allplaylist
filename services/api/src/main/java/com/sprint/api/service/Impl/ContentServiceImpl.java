@@ -151,6 +151,7 @@ public class ContentServiceImpl implements ContentService {
      * 콘텐츠 삭제
      */
     @Override
+    @Transactional
     public void deleteContent(UUID contentId) {
         contentsRepository.deleteById(contentId);
 
@@ -161,6 +162,7 @@ public class ContentServiceImpl implements ContentService {
         return null;
     }
     @Override
+    @Transactional
     public ContentDto updateContent(UUID contentId, ContentUpdateRequest request, MultipartFile thumbnail) {
         return null;
     }

@@ -14,10 +14,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/contents")
-@RequiredArgsConstructor  //필수 필드 생성자 자동 생성
+@RequiredArgsConstructor  //final 붙은 필수 필드 생성자 자동 생성
 public class ContentController {
 
-    private ContentService contentService;
+    private final ContentService contentService;
 
     /** 콘텐츠 생성 (어드민)
      * - MultipartFile(thumbnail)은 필수아님
