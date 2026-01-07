@@ -1,6 +1,6 @@
-package com.sprint.api.repository;
+package com.sprint.api.repository.user;
 
-import com.sprint.api.entity.User;
+import com.sprint.api.entity.user.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

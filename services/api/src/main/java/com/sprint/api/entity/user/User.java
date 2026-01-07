@@ -1,4 +1,4 @@
-package com.sprint.api.entity;
+package com.sprint.api.entity.user;
 
 import com.sprint.api.common.BaseEntity;
 import jakarta.persistence.Column;

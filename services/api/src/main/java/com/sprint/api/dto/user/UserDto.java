@@ -1,6 +1,6 @@
 package com.sprint.api.dto.user;
 
-import com.sprint.api.entity.UserRole;
+import com.sprint.api.entity.user.UserRole;
 import java.time.LocalDateTime;
 
 public record UserDto (

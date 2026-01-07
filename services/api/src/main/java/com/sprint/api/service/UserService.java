@@ -7,8 +7,8 @@ import com.sprint.api.dto.user.UserDto;
 import com.sprint.api.dto.user.UserLockUpdateRequest;
 import com.sprint.api.dto.user.UserRoleUpdateRequest;
 import com.sprint.api.dto.user.UserUpdateRequest;
-import com.sprint.api.entity.User;
-import com.sprint.api.repository.UserRepository;
+import com.sprint.api.entity.user.User;
+import com.sprint.api.repository.user.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +53,7 @@ public class UserService {
     }
 
     /* ✅ 사용자 단건 조회(상세 조회)
-    */
+    * */
     @Transactional(readOnly = true)
     public UserDto getUser(String userId) {
       User user = userRepository.findById(userId)

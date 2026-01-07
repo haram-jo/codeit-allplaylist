@@ -1,8 +1,10 @@
-package com.sprint.api.entity;
+package com.sprint.api.entity.contents;
 
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -36,4 +38,13 @@ public class Contents {
     @Column(name = "review_count")
     private Integer reviewCount; // 리뷰수 (필터링할 때 인기순)
 
+    // --- 추가된 부분: 태그와의 연관 관계 ---
+    @Builder.Default
+    @OneToMany(mappedBy = "contents", cascade = CascadeType.ALL, orphanRemoval = true) // 컨텐츠가 PK 주인
+    private List<ContentTag> contentTags = new ArrayList<>();
+
+    // 콘텐츠에 태그 추가할때 쓰는 메서드
+    public void addTag(ContentTag contentTag) {
+        this.contentTags.add(contentTag);
+    }
 }
