@@ -18,6 +18,9 @@ public interface ContentService {
     // 콘텐츠 삭제 (어드민)
     void deleteContent(UUID contentId);
 
+    // 콘텐츠 수정 (어드민)
+    ContentDto updateContent(UUID contentId, ContentUpdateRequest request, MultipartFile thumbnail);
+
     // 콘텐츠 목록 조회 (커서 페이지네이션)
     CursorResponseContentDto getContents(
             String typeEqual,
@@ -29,8 +32,4 @@ public interface ContentService {
             String sortBy,
             SortDirection sortDirection
     );
-
-    // 콘텐츠 수정 (어드민)
-    ContentDto updateContent(UUID contentId, ContentUpdateRequest request, MultipartFile thumbnail);
-
 }

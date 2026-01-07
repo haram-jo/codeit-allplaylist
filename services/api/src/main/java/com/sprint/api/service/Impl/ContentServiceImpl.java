@@ -158,7 +158,7 @@ public class ContentServiceImpl implements ContentService {
 
     }
 
- /**
+    /**
      * 콘텐츠 수정
      */
     @Override
@@ -167,6 +167,9 @@ public class ContentServiceImpl implements ContentService {
         return null;
     }
 
+    /**
+     * 콘텐츠 목록 조회 (커서 페이지네이션)
+     */
     @Override
     public CursorResponseContentDto getContents(String typeEqual, String keywordLike, List<String> tagsIn, String cursor, UUID idAfter, int limit, String sortBy, SortDirection sortDirection) {
         return null;
