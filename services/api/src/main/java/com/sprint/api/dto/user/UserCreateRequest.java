@@ -1,4 +1,4 @@
-package com.sprint.api.dto;
+package com.sprint.api.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

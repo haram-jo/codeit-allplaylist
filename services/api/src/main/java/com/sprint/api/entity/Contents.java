@@ -1,0 +1,39 @@
+package com.sprint.api.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.UUID;
+
+@Entity
+@Table(name = "contents")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+public class Contents {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "BINARY(16)") // DB 저장 시 16바이트 이진값으로 효율적 저장
+    private UUID id; // 아이디 (PK)
+
+    @Column(nullable = false)
+    private String type; // 콘텐츠 타입
+
+    @Column(nullable = false)
+    private String title; // 제목
+
+    @Column(name = "description", nullable = false)
+    private String description; // 설명
+
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl; // 썸네일 url
+
+    @Column(name = "average_rating")
+    private Double averageRating; // 평점 (집계된 평균값)
+
+    @Column(name = "review_count")
+    private Integer reviewCount; // 리뷰수 (필터링할 때 인기순)
+
+}

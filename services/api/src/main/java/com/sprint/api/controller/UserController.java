@@ -1,11 +1,11 @@
 package com.sprint.api.controller;
 
-import com.sprint.api.dto.ChangePasswordRequest;
-import com.sprint.api.dto.UserCreateRequest;
-import com.sprint.api.dto.UserDto;
-import com.sprint.api.dto.UserLockUpdateRequest;
-import com.sprint.api.dto.UserRoleUpdateRequest;
-import com.sprint.api.dto.UserUpdateRequest;
+import com.sprint.api.dto.user.ChangePasswordRequest;
+import com.sprint.api.dto.user.UserCreateRequest;
+import com.sprint.api.dto.user.UserDto;
+import com.sprint.api.dto.user.UserLockUpdateRequest;
+import com.sprint.api.dto.user.UserRoleUpdateRequest;
+import com.sprint.api.dto.user.UserUpdateRequest;
 import com.sprint.api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
