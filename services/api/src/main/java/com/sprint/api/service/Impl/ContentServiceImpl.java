@@ -6,8 +6,9 @@ import com.sprint.api.entity.contents.Contents;
 import com.sprint.api.entity.contents.Tag;
 import com.sprint.api.repository.contents.ContentTagRepository;
 import com.sprint.api.repository.contents.ContentsRepository;
+import com.sprint.api.repository.contents.ContentsRepositoryCustom;
 import com.sprint.api.repository.contents.TagRepository;
-import com.sprint.api.service.ContentService;
+import com.sprint.api.service.contents.ContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,8 +54,9 @@ public class ContentServiceImpl implements ContentService {
                 .title(request.title())
                 .description(request.description())
                 .thumbnailUrl(thumbnailUrl) // 저장된 사진 주소 혹은 null
-                .averageRating(0.0) // 새 콘텐츠니까 평점은 0점부터 시작
-                .reviewCount(0)     // 리뷰 개수도 0개부터 시작
+                .averageRating(0)    // Double 타입에 맞춰 0.0으로 설정
+                .reviewCount(0)        // 초기 리뷰 수 0
+                .watcherCount(0L)      // 추가된 필드: 초기 시청자 수 0 (Long 타입이라 0L)
                 .build();
 
         // 4. 콘텐츠 기본 정보를 DB에 저장
@@ -131,7 +133,7 @@ public class ContentServiceImpl implements ContentService {
                 tagList,
                 contents.getAverageRating(),
                 contents.getReviewCount(),
-                0L // watcherCount(조회수)는 일단 0으로 세팅
+                contents.getWatcherCount()
         );
     }
 
@@ -154,7 +156,6 @@ public class ContentServiceImpl implements ContentService {
         contentsRepository.deleteById(contentId);
 
     }
-    // --- 나머지 기능들 (조회, 수정) ---
 
     /** 콘텐츠 수정
      *  - 썸네일 새로 업로드시 교체, 없으면 기존 것 유지
@@ -196,11 +197,58 @@ public class ContentServiceImpl implements ContentService {
         }
         return convertToDto(contents);
     }
+
+
     /**
      * 콘텐츠 목록 조회 (커서 페이지네이션)
      */
     @Override
-    public CursorResponseContentDto getContents(String typeEqual, String keywordLike, List<String> tagsIn, String cursor, UUID idAfter, int limit, String sortBy, SortDirection sortDirection) {
-        return null;
+    public CursorResponseContentDto getContents(String typeEqual, String keywordLike, List<String> tagsIn,
+                                                String cursor, UUID idAfter, int limit,
+                                                String sortBy, SortDirection sortDirection) {
+
+        // 1. DB에서 limit + 1개를 조회 (다음 페이지 존재 여부 확인용)
+        List<Contents> entities = contentsRepository.findAllByCursor(
+                typeEqual, keywordLike, tagsIn, cursor, idAfter, limit, sortBy, sortDirection);
+
+        // 2. 다음 페이지(hasNext) 판단 및 실제 데이터(limit개) 절삭
+        boolean hasNext = entities.size() > limit;
+        List<Contents> resultData = hasNext ? entities.subList(0, limit) : entities;
+
+        // 3. Entity -> DTO 변환
+        List<ContentDto> data = resultData.stream()
+                .map(this::convertToDto)
+                .toList();
+
+        // 4. 다음 페이지 요청을 위한 커서(nextCursor, nextIdAfter) 생성
+        String nextCursor = null;
+        UUID nextIdAfter = null;
+
+        if (hasNext && !resultData.isEmpty()) {
+            Contents lastItem = resultData.get(resultData.size() - 1);
+
+            // 정렬 기준(sortBy)에 맞는 값을 문자열로 변환하여 nextCursor에 담음
+            nextCursor = switch (sortBy) {
+                case "watcherCount" -> String.valueOf(lastItem.getWatcherCount());
+                case "averageRating", "rate" -> String.valueOf(lastItem.getAverageRating()); // Swagger의 rate와 매핑
+                default -> lastItem.getCreatedAt().toString(); // 최신순
+            };
+
+            // 보조 커서로 사용될 마지막 아이템의 ID
+            nextIdAfter = lastItem.getId();
+        }
+
+        // 5. 전체 개수 조회
+        long totalCount = contentsRepository.count(); // 전체 콘텐츠 개수
+
+        return CursorResponseContentDto.builder()
+                .data(data)
+                .nextCursor(nextCursor)
+                .nextIdAfter(nextIdAfter)
+                .hasNext(hasNext)
+                .totalCount(totalCount)
+                .sortBy(sortBy)
+                .sortDirection(sortDirection)
+                .build();
     }
 }

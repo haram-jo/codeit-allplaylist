@@ -30,12 +30,18 @@ dependencies {
 	// ✅ H2 ( 로컬에서 DB없이 실행용)
 	runtimeOnly 'com.h2database:h2'
 
+	// ✅ MySql
+	implementation 'com.mysql:mysql-connector-j'
+
 	// ✅ JPA (DB 설정 읽기)
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	// ✅ MySql
-	implementation 'com.mysql:mysql-connector-j'
+	// ✅ Querydsl 설정 추가 (Spring Boot 3.x 용)
+	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -47,4 +53,19 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// ✅ Querydsl QClass 생성 위치 설정
+def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
+
+sourceSets {
+	main.java.srcDirs += [ querydslDir ]
+}
+
+tasks.withType(JavaCompile) {
+	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+}
+
+clean {
+	delete file(querydslDir)
 }

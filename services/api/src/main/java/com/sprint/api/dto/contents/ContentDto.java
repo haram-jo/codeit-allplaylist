@@ -13,7 +13,7 @@ public record ContentDto(
         String description, // 콘텐츠 설명
         String thumbnailUrl, // 콘텐츠 썸네일
         List<String> tags, // 태그
-        Double averageRating, // 평점 (집계된 평균값)
+        Integer averageRating, // 평점 (집계된 평균값)
         Integer reviewCount, // 리뷰수 (필터링할때 인기순)
         Long watcherCount // 시청자 수
 ) {}

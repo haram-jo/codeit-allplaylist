@@ -1,5 +1,8 @@
 package com.sprint.api.dto.contents;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -8,7 +11,7 @@ import java.util.UUID;
  * 껍데기 (CursorResponseContentDto): 페이징 정보 (다음 페이지 좌표, 남은 데이터 여부 등)
  * 내용물 (ContentDto): 실제 우리가 보여줄 콘텐츠 알맹이들
  */
-
+@Builder
 public record CursorResponseContentDto(
         List<ContentDto> data,      // 데이터 목록
         String nextCursor,          // 다음 페이지를 조회하기 위한 메인 커서(정렬 기준값)

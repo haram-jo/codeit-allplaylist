@@ -1,5 +1,6 @@
 package com.sprint.api.entity.contents;
 
+import com.sprint.api.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Contents {
+public class Contents extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,12 +34,16 @@ public class Contents {
     private String thumbnailUrl; // 썸네일 url
 
     @Column(name = "average_rating")
-    private Double averageRating; // 평점 (집계된 평균값)
+    private Integer averageRating; // 평점 (집계된 평균값)
 
     @Column(name = "review_count")
     private Integer reviewCount; // 리뷰수 (필터링할 때 인기순)
 
-    // --- 추가된 부분: 태그와의 연관 관계 ---
+    @Column(name = "watcher_count")
+    @Builder.Default // 값 따로 없으면 기본값 0주입
+    private Long watcherCount = 0L;
+
+    // 태그와의 연관 관계
     @Builder.Default
     @OneToMany(mappedBy = "contents", cascade = CascadeType.ALL, orphanRemoval = true) // 컨텐츠가 PK 주인
     private List<ContentTag> contentTags = new ArrayList<>();
