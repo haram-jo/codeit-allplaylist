@@ -47,4 +47,22 @@ public class Contents {
     public void addTag(ContentTag contentTag) {
         this.contentTags.add(contentTag);
     }
+
+    // 콘텐츠 제목, 설명 수정 메서드
+    public void update(String title, String description) {
+        // 들어온 값이 null이 아닐 때만 필드를 교체 (null이면 기존 값 유지)
+        if (title != null) {
+            this.title = title;
+        }
+        if (description != null) {
+            this.description = description;
+        }
+    }
+
+    // 콘텐츠 썸네일 수정 메서드
+    public void updateThumbnail(String newThumbnailUrl) {
+        if (newThumbnailUrl != null) {
+            this.thumbnailUrl = newThumbnailUrl;
+        }
+    }
 }

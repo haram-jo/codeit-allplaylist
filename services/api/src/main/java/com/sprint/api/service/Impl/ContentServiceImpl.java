@@ -135,11 +135,8 @@ public class ContentServiceImpl implements ContentService {
         );
     }
 
-    // --- 나머지 기능들 (조회, 수정, 삭제) ---
-
-    /** 콘텐츠 수정
-     *  - 썸네일 새로 업로드시 교체
-     *  - 교체되지 않았으면 기존 것 유지
+    /**
+     * 콘텐츠 단건 상세 조회
      */
     @Override
     public ContentDto getContent(UUID contentId) {
@@ -157,16 +154,48 @@ public class ContentServiceImpl implements ContentService {
         contentsRepository.deleteById(contentId);
 
     }
+    // --- 나머지 기능들 (조회, 수정) ---
 
-    /**
-     * 콘텐츠 수정
+    /** 콘텐츠 수정
+     *  - 썸네일 새로 업로드시 교체, 없으면 기존 것 유지
+     *  - 태그 수정시 clear() 후 재연결
+     *  - 위와 같은 방법이 코드가 단순해지고 버그 발생 가능성이 적음
      */
     @Override
     @Transactional
     public ContentDto updateContent(UUID contentId, ContentUpdateRequest request, MultipartFile thumbnail) {
-        return null;
-    }
+        //1. 기존 데이터 조회 (영속성 컨텍스트에 올라감)
+        Contents contents = contentsRepository.findById(contentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 콘텐츠를 찾을 수 없습니다." + contentId));
 
+        //2. 일반 필드 수정 (제목, 설명)
+        contents.update(request.title(), request.description());
+
+        // 3. 썸네일 수정 (파일이 넘어왔을 때만 교체)
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            String newThumbnailUrl = saveThumbnail(thumbnail);
+            contents.updateThumbnail(newThumbnailUrl);
+        }
+
+        // 2. 태그 수정 (clear 사용)
+        if (request.tags() != null) {
+            // 리스트를 비우면 orphanRemoval = true 설정에 의해 DB 데이터도 삭제됨
+            contents.getContentTags().clear();
+
+            for (String tagName : request.tags()) {
+                Tag tag = tagRepository.findByTag(tagName)
+                        .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+
+                ContentTag contentTag = ContentTag.builder()
+                        .contents(contents)
+                        .tag(tag)
+                        .build();
+
+                contents.addTag(contentTag);
+            }
+        }
+        return convertToDto(contents);
+    }
     /**
      * 콘텐츠 목록 조회 (커서 페이지네이션)
      */

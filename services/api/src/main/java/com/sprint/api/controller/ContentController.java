@@ -41,7 +41,7 @@ public class ContentController {
 
     /**
      * 콘텐츠 목록 조회 (커서 페이지네이션)
-     * 스웨거의 typeEqual, keywordLike, tagsIn 등 쿼리 파라미터 반영
+     * - 스웨거의 typeEqual, keywordLike, tagsIn 등 쿼리 파라미터 반영
      */
     @GetMapping
     public CursorResponseContentDto getContents(
