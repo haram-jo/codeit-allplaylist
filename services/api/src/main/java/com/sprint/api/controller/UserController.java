@@ -6,7 +6,7 @@ import com.sprint.api.dto.user.UserDto;
 import com.sprint.api.dto.user.UserLockUpdateRequest;
 import com.sprint.api.dto.user.UserRoleUpdateRequest;
 import com.sprint.api.dto.user.UserUpdateRequest;
-import com.sprint.api.service.UserService;
+import com.sprint.api.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.sprint.api.service;
+package com.sprint.api.service.user;
 
 
 import com.sprint.api.dto.user.ChangePasswordRequest;

@@ -1,7 +1,7 @@
 package com.sprint.api.controller;
 
 import com.sprint.api.dto.contents.*;
-import com.sprint.api.service.ContentService;
+import com.sprint.api.service.contents.ContentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

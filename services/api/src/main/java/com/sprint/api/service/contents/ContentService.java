@@ -1,4 +1,4 @@
-package com.sprint.api.service;
+package com.sprint.api.service.contents;
 
 import com.sprint.api.dto.contents.*;
 import org.springframework.web.multipart.MultipartFile;
