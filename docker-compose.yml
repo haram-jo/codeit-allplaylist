@@ -37,6 +37,8 @@ services:
       - mysql
     environment:
       SPRING_PROFILES_ACTIVE: docker
+    env_file:
+      - .env
     networks:
       - app-network
 
