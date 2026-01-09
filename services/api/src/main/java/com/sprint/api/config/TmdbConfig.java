@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
 /**
- * TMDB API 연동 설정
+ * TMDB API 연동 설정 관련 파일
  */
 
 @Configuration

@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * TMDB 서버가 나에게 보내준 응답(Response) 데이터
- * - 아직 우리 DB에 들어가기 전인, 외부 API 데이터 상태
+ * - 아직 우리 DB에 들어가기 전 상태
  */
 
 public record TmdbMovieResponse(
@@ -20,6 +20,8 @@ public record TmdbMovieResponse(
             @JsonProperty("poster_path")
             String posterPath,
             @JsonProperty("vote_average")
-            Double voteAverage
+            Double voteAverage,
+            @JsonProperty("genre_ids") // TMDB에서 보내주는 장르 ID 리스트
+            List<Integer> genreIds
     ) {}
 }
