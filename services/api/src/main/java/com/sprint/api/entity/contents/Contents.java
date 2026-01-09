@@ -27,7 +27,7 @@ public class Contents extends BaseEntity {
     @Column(nullable = false)
     private String title; // 제목
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", columnDefinition = "TEXT") // TEXT 타입으로 변경
     private String description; // 설명
 
     @Column(name = "thumbnail_url")
@@ -42,6 +42,9 @@ public class Contents extends BaseEntity {
     @Column(name = "watcher_count")
     @Builder.Default // 값 따로 없으면 기본값 0주입
     private Long watcherCount = 0L;
+
+    @Column(name = "tmdb_id", unique = true) // Open APi 끌어올때 콘텐츠 중복 방지를 위해 추가
+    private Long tmdbId;
 
     // 태그와의 연관 관계
     @Builder.Default
