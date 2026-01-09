@@ -37,11 +37,12 @@ public class TmdbService {
         // 2. 규칙에 따라 Repository의 save()를 호출하여 등록
         for (var tmdbMovie : response.results()) {
 
-            // 중복 방지를 위해 tmdbId 필드 체크가 필요합니다!
+            // 중복 방지를 위해 tmdbId 필드 체크가 필요
             if (contentsRepository.existsByTmdbId(tmdbMovie.id())) {
                 continue;
             }
 
+            // 저장할 데이터 조립 (Entity)
             Contents content = Contents.builder()
                     .tmdbId(tmdbMovie.id()) // Contents 엔티티에 추가 권장
                     .type("MOVIE")
@@ -53,7 +54,7 @@ public class TmdbService {
                     .watcherCount(0L)
                     .build();
 
-            // 네이밍 규칙: 등록 시 Repository의 save() 사용
+            //  실제 DB 저장 (INSERT 실행)
             contentsRepository.save(content);
         }
         log.info("TMDB 인기 영화 등록 완료");

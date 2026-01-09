@@ -27,7 +27,7 @@ public class Contents extends BaseEntity {
     @Column(nullable = false)
     private String title; // 제목
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", columnDefinition = "TEXT") // TEXT 타입으로 변경
     private String description; // 설명
 
     @Column(name = "thumbnail_url")
