@@ -43,6 +43,9 @@ public class Contents extends BaseEntity {
     @Builder.Default // 값 따로 없으면 기본값 0주입
     private Long watcherCount = 0L;
 
+    @Column(name = "tmdb_id", unique = true) // Open APi 끌어올때 콘텐츠 중복 방지를 위해 추가
+    private Long tmdbId;
+
     // 태그와의 연관 관계
     @Builder.Default
     @OneToMany(mappedBy = "contents", cascade = CascadeType.ALL, orphanRemoval = true) // 컨텐츠가 PK 주인

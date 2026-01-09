@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 /**
- * 콘텐츠 등록을 위한 요청 DTO
+ * 관리자가 콘텐츠 등록을 위한 요청 DTO (어드민)
  */
 
 public record ContentCreateRequest(
