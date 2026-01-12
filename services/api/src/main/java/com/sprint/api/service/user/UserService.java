@@ -16,6 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/*
+ * UserService 클래스
+ * - 사용자 관련 비즈니스 로직 처리
+ */
+
 @Service
 @RequiredArgsConstructor // 필수 필드 생성자 자동 생성
 public class UserService {
