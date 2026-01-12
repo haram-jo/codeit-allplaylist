@@ -12,6 +12,7 @@ import com.sprint.api.repository.user.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
   /* ✅ 회원가입
   * -record DTO는 request.getEmail() X -> request.email() O로 꺼냄
@@ -31,11 +33,14 @@ public class UserService {
       throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
     }
 
+    // 1. 비밀번호 암호화 로직 추가
+    String encodedPassword = passwordEncoder.encode(request.password());
+
       //엔티티 생성
     User user = User.builder()
         .name(request.name())
         .email(request.email())
-        .password(request.password())
+        .password(encodedPassword)
         .build();
 
     User saved = userRepository.save(user);

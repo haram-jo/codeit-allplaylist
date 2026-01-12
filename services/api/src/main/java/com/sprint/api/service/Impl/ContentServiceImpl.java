@@ -6,7 +6,6 @@ import com.sprint.api.entity.contents.Contents;
 import com.sprint.api.entity.contents.Tag;
 import com.sprint.api.repository.contents.ContentTagRepository;
 import com.sprint.api.repository.contents.ContentsRepository;
-import com.sprint.api.repository.contents.ContentsRepositoryCustom;
 import com.sprint.api.repository.contents.TagRepository;
 import com.sprint.api.service.contents.ContentService;
 import lombok.RequiredArgsConstructor;
