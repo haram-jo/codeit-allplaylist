@@ -24,4 +24,8 @@ gradle-app.setting
 /uploads/
 /thumbnails/
 
+# 보안 정보 파일 제외
+.env
+*.env
+
 

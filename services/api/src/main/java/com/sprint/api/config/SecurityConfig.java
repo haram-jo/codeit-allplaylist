@@ -1,0 +1,80 @@
+package com.sprint.api.config;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+
+
+/* 스프링 시큐리티 설정 클래스
+  - HTTP 보안 설정 (세션 관리, CSRF 설정, 요청 권한 설정)
+*/
+@Configuration
+@EnableWebSecurity // 스프링 시큐리티 설정 활성화
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final LoginSuccessHandler loginSuccessHandler;
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    // PasswordEncoder 빈 등록
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    // CustomLoginFilter 빈 등록
+    @Bean
+    public CustomLoginFilter customLoginFilter() throws Exception {
+        CustomLoginFilter filter = new CustomLoginFilter();
+        filter.setFilterProcessesUrl("/api/auth/sign-in"); // Swagger 로그인 경로
+        filter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
+        filter.setAuthenticationSuccessHandler(loginSuccessHandler); // 로그인 성공 시 연결
+        return filter;
+    }
+
+    // SecurityFilterChain 빈 등록
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                // 1. JWT를 쓰므로 서버에 세션 만들지 않도록 (Stateless)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 2. CSRF 설정 (쿠키 저장 방식)
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // CSRF 토큰을 쿠키에 저장
+                       .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()) // CSRF 핸들러 설정
+                )
+
+                .authorizeHttpRequests(auth -> auth
+                        //로그인과 회원가입은 아무나 접근 가능
+                        .requestMatchers(HttpMethod.POST, "/api/users", "/api/auth/sign-in").permitAll()
+                        // 나머지는 인증(로그인) 필요
+                        .anyRequest().authenticated()
+                );
+
+                // CustomLoginFilter를 씨큐리티 체인에 추가
+                http.addFilterAt(customLoginFilter(), UsernamePasswordAuthenticationFilter.class);
+                return http.build();
+
+        /* 테스트 코드
+                .csrf(csrf -> csrf.disable()) // 테스트 위해 임시허용
+                // 모든 경로에 대해 접근 허용
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                );
+        http.addFilterBefore(customLoginFilter(), UsernamePasswordAuthenticationFilter.class);
+        */
+    }
+}
