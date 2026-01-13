@@ -1,6 +1,6 @@
 package com.sprint.api.service.user;
 
-import com.sprint.api.repository.user.UserRepository;
+import com.sprint.api.dto.user.CustomUserDetailsDto;import com.sprint.api.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,12 +22,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username) // emmail로 사용자 조회
-                .map(user -> org.springframework.security.core.userdetails.User.builder()
-                        .username(user.getEmail())
-                        .password(user.getPassword())
-                        .roles(user.getRole().name())
-                        .build())
+        return userRepository.findByEmail(username) // email로 사용자 조회
+                .map(CustomUserDetailsDto::new)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 이메일을 찾을 수 없습니다: " + username));
     }
 }

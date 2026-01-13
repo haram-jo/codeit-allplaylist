@@ -62,11 +62,16 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 2. CSRF 설정 (쿠키 저장 방식)
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // CSRF 토큰을 쿠키에 저장
-                       .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()) // CSRF 핸들러 설정
-                )
+
+
+                //배포시 주석풀기 (쿠키 저장 방식)
+                //csrf(csrf -> csrf
+                //        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // CSRF 토큰을 쿠키에 저장
+                //       .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()) // CSRF 핸들러 설정
+
+
+                // 2-1. 로컬 개발용 csrf
+                .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
                         //로그인과 회원가입은 아무나 접근 가능

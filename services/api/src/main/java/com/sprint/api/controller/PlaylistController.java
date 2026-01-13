@@ -4,11 +4,13 @@ import com.sprint.api.dto.playlists.CursorResponsePlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistCreateRequest;
 import com.sprint.api.dto.playlists.PlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistUpdateRequest;
+import com.sprint.api.dto.user.CustomUserDetailsDto;
 import com.sprint.api.service.playlists.PlaylistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -46,12 +48,17 @@ public class PlaylistController {
      */
     @PostMapping
     public ResponseEntity<PlaylistDto> createPlaylist(
-            @Valid @RequestBody PlaylistCreateRequest request
-            // @AuthenticationPrincipal UserPrincipal principal // 실제 인증 구현 시 사용
+            @Valid @RequestBody PlaylistCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
     ) {
-        // 현재 로그인한 사용자 ID를 넘겨준다고 가정 (임시 UUID 사용)
-        UUID currentUserId = UUID.randomUUID();
-        PlaylistDto response = playlistService.createPlaylist(request, currentUserId);
+        // 1. UUID가 필요할 때
+        UUID userId = userDetails.getUserId();
+
+        // 2. 이메일이 필요할 때
+        String email = userDetails.getEmail();
+
+        // userDetails에서 UUID userId를 꺼내서 서비스로 전달
+        PlaylistDto response = playlistService.createPlaylist(request, userDetails.getUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

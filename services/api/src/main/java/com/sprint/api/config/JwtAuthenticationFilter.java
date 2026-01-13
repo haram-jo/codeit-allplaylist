@@ -16,8 +16,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 
-/* JWT 인증 필터
- 요청이 들어올 때마다 JWT 토큰을 검사하고, 유효한 경우 SecurityContext에 인증 정보를 설정
+/** CustomLoginFilter는 로그인시 토큰을 주지만,
+ * - 이후 요청이 올때 헤더의 토큰을 해석해서 누구인지
+ * - 알아내는 Filter가 필요
 */
 
 @RequiredArgsConstructor
@@ -28,18 +29,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        // 헤더에서 토큰값만 뽑음
         String token = resolveToken(request);
 
+        // 로그 추가: 요청이 들어올 때마다 토큰 존재 여부 확인
+        System.out.println("Incoming Request URL: " + request.getRequestURI());
+        System.out.println("Resolved Token: " + token);
+
         if (token != null && jwtProvider.validateToken(token)) {
+
             String email = jwtProvider.getEmail(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
             Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+
+            // SecurityContext에 인증 정보 저장, 이후 컨트롤러에서 인증 정보 사용 가능
             SecurityContextHolder.getContext().setAuthentication(auth);
+
+            // 로그 추가: 인증 성공 확인
+            System.out.println("Authentication Success: " + email);
+
         }
         filterChain.doFilter(request, response);
     }
 
+    // 순수 JWT 토큰 문자열만 추출
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
