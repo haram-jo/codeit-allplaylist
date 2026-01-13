@@ -34,4 +34,7 @@ public class Playlist extends BaseEntity {
     @Builder.Default
     private long subscriberCount = 0; // 구독자수 초기값 0으로 세팅
 
+    // 플레이리스트 정보 업데이트 메서드
+    public void update(String title, String description) {
+    }
 }
