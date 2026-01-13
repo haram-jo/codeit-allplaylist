@@ -36,5 +36,7 @@ public class Playlist extends BaseEntity {
 
     // 플레이리스트 정보 업데이트 메서드
     public void update(String title, String description) {
+        this.title = title;
+        this.description = description;
     }
 }

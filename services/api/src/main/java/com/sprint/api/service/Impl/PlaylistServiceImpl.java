@@ -4,14 +4,18 @@ import com.sprint.api.dto.playlists.CursorResponsePlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistCreateRequest;
 import com.sprint.api.dto.playlists.PlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistUpdateRequest;
-import com.sprint.api.dto.user.UserSummary;import com.sprint.api.entity.playlists.Playlist;import com.sprint.api.entity.user.User;import com.sprint.api.repository.playlist.PlaylistRepository;
+import com.sprint.api.dto.user.UserSummary;
+import com.sprint.api.entity.playlists.Playlist;
+import com.sprint.api.entity.user.User;
+import com.sprint.api.repository.playlist.PlaylistRepository;
 import com.sprint.api.repository.user.UserRepository;
 import com.sprint.api.service.playlists.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;import java.util.UUID;import static com.sprint.api.entity.playlists.QPlaylist.playlist;
+import java.util.List;
+import java.util.UUID;
 
 /** 플레이리스트 서비스 구현체
    - 플레이리스트를 생성, 조회, 수정, 삭제하는 기능을 제공
@@ -31,8 +35,9 @@ public class PlaylistServiceImpl implements PlaylistService {
      - PlaylistDto 구조에 맞춰 결과를 반환
      */
     @Override
+    @Transactional
     public PlaylistDto createPlaylist(PlaylistCreateRequest request, UUID currentUserId) {
-        // 유저 조회
+
         User user = userRepository.findById(currentUserId.toString())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -47,12 +52,12 @@ public class PlaylistServiceImpl implements PlaylistService {
         // DB 저장
         Playlist savedPlaylist = playlistRepository.save(playlist);
 
-        // DTO로 변환하여 반환 (생성자 호출 방식)
+        // DTO로 변환하여 반환
         return convertToDto(savedPlaylist);
     }
 
     /**
-     * 엔티티 -> DTO 변환, DTO에 적어도 되는 코드들
+     * 엔티티 -> DTO 변환, DTO에 적어도 되고, Impl에 적어도 됨
      */
     private PlaylistDto convertToDto(Playlist playlist) {
         // UserSummary 생성
@@ -84,7 +89,6 @@ public class PlaylistServiceImpl implements PlaylistService {
     public PlaylistDto getPlaylist(UUID playlistId) {
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(()-> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
-
         return convertToDto(playlist);
     }
 
@@ -99,12 +103,6 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 플레이리스트입니다."));
-
-        // === 여기에서 두 ID를 출력해서 비교해보세요 ===
-        System.out.println("------------------------------------------");
-        System.out.println("DB에 저장된 주인 ID: " + playlist.getUser().getId());
-        System.out.println("현재 로그인한 유저 ID: " + currentUserId.toString());
-        System.out.println("------------------------------------------");
 
         if (!playlist.getUser().getId().equals(currentUserId.toString())) {
             throw new IllegalStateException("수정 권한이 없습니다.");
@@ -131,7 +129,9 @@ public class PlaylistServiceImpl implements PlaylistService {
         playlistRepository.delete(playlist);
     }
 
-    // 5. 목록 조회 (커서 페이징)
+    /** 5. 목록조회
+     - 플레이리스트 목록을 조회하는 메서드 (미구현)
+     */
     @Override
     @Transactional(readOnly = true)
     public CursorResponsePlaylistDto getPlaylists(String keywordLike, UUID ownerIdEqual, UUID subscriberIdEqual,

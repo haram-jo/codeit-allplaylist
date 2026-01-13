@@ -77,10 +77,12 @@ public class PlaylistController {
     @PatchMapping("/{playlistId}")
     public ResponseEntity<PlaylistDto> updatePlaylist(
             @PathVariable UUID playlistId,
-            @RequestBody PlaylistUpdateRequest request
+            @RequestBody PlaylistUpdateRequest request,   // 로그인된 유저 정보를 인자로 받음
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
     ) {
-        // 소유자 권한 체크 로직은 서비스 계층에서 처리 권장
-        UUID currentUserId = UUID.randomUUID();
+        // 로그인한 유저 ID를 꺼냄
+        UUID currentUserId = userDetails.getUserId();
+
         PlaylistDto response = playlistService.updatePlaylist(playlistId, request, currentUserId);
         return ResponseEntity.ok(response);
     }
@@ -90,11 +92,15 @@ public class PlaylistController {
      */
     @DeleteMapping("/{playlistId}")
     public ResponseEntity<Void> deletePlaylist(
-            @PathVariable UUID playlistId
+            @PathVariable UUID playlistId,
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails // 로그인된 유저 정보를 인자로 받음
     ) {
-        UUID currentUserId = UUID.randomUUID();
+        // 로그인한 유저 ID를 꺼냄
+        UUID currentUserId = userDetails.getUserId();
+
         playlistService.deletePlaylist(playlistId, currentUserId);
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity.noContent().build();
     }
 }
 
