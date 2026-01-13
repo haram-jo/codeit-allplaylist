@@ -1,5 +1,6 @@
 package com.sprint.api.config;
 
+import com.sprint.api.service.user.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,12 +27,15 @@ public class SecurityConfig {
 
     private final LoginSuccessHandler loginSuccessHandler;
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final JwtProvider jwtProvider;
+    private final CustomUserDetailsService userDetailsService;
 
     // PasswordEncoder 빈 등록
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 
     // CustomLoginFilter 빈 등록
     @Bean
@@ -42,6 +46,13 @@ public class SecurityConfig {
         filter.setAuthenticationSuccessHandler(loginSuccessHandler); // 로그인 성공 시 연결
         return filter;
     }
+
+    // JWT 검증 필터 빈 등록 (로그인 성공 후 모든 요청에 대해 JWT 검증)
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtProvider, userDetailsService);
+    }
+
 
     // SecurityFilterChain 빈 등록
     @Bean
@@ -64,9 +75,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
 
-                // CustomLoginFilter를 씨큐리티 체인에 추가
+                // CustomLoginFilter는 로그인 시도 시 작동
                 http.addFilterAt(customLoginFilter(), UsernamePasswordAuthenticationFilter.class);
+
+                // JwtAuthenticationFilter는 매 요청마다 토큰 검사 (로그인 필터 앞에 배치)
+                http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
                 return http.build();
+            }
+        }
 
         /* 테스트 코드
                 .csrf(csrf -> csrf.disable()) // 테스트 위해 임시허용
@@ -76,5 +93,3 @@ public class SecurityConfig {
                 );
         http.addFilterBefore(customLoginFilter(), UsernamePasswordAuthenticationFilter.class);
         */
-    }
-}
