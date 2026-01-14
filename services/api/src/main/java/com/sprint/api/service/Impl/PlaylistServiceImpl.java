@@ -259,6 +259,7 @@ public class PlaylistServiceImpl implements PlaylistService {
      * - param userId
      *
      */
+    @Override
     @Transactional
     public void deletePlaylistContent(UUID playlistId, UUID contentId, UUID userId) {
 
