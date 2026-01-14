@@ -154,7 +154,57 @@ public class PlaylistServiceImpl implements PlaylistService {
     public CursorResponsePlaylistDto getPlaylists(String keywordLike, UUID ownerIdEqual, UUID subscriberIdEqual,
                                                   String cursor, UUID idAfter, int limit,
                                                   String sortDirection, String sortBy) {
-        return null;
+
+        // 1. DB에서 limit + 1개를 조회 (다음 페이지 존재 여부 확인용)
+        // Playlist용 Repository Custom 메서드가 필요합니다.
+        List<Playlist> entities = playlistRepository.findAllByCursor(
+                keywordLike, ownerIdEqual, subscriberIdEqual,
+                cursor, idAfter, limit,
+                sortDirection, sortBy);
+
+        // 2. 다음 페이지(hasNext) 판단 및 실제 데이터(limit개) 절삭
+        boolean hasNext = entities.size() > limit;
+        List<Playlist> resultData = hasNext ? entities.subList(0, limit) : entities;
+
+        // 3. Entity -> DTO 변환 (기존에 만들어두신 convertToDto 사용)
+        List<PlaylistDto> data = resultData.stream()
+                .map(this::convertToDto)
+                .toList();
+
+        // 4. 다음 페이지 요청을 위한 커서(nextCursor, nextIdAfter) 생성
+        String nextCursor = null;
+        UUID nextIdAfter = null;
+
+        if (hasNext && !resultData.isEmpty()) {
+            Playlist lastItem = resultData.get(resultData.size() - 1);
+
+            // Swagger 기준 정렬 조건: updatedAt(날짜), subscribeCount(숫자)
+            nextCursor = switch (sortBy) {
+                case "subscribeCount" -> String.valueOf(lastItem.getSubscriberCount());
+                default -> lastItem.getUpdatedAt().toString(); // 최신순
+            };
+
+            nextIdAfter = lastItem.getId();
+        }
+
+        // 5. 전체 개수 조회
+        long totalCount = playlistRepository.countByConditions(keywordLike, ownerIdEqual, subscriberIdEqual);
+
+        // DTO의 enum 타입에 맞춰 변환
+        CursorResponsePlaylistDto.SortDirection direction =
+                sortDirection.equalsIgnoreCase("ASCENDING") ?
+                        CursorResponsePlaylistDto.SortDirection.ASCENDING :
+                        CursorResponsePlaylistDto.SortDirection.DESCENDING;
+
+        return new CursorResponsePlaylistDto(
+                data,
+                nextCursor,
+                nextIdAfter,
+                hasNext,
+                totalCount,
+                sortBy,
+                direction
+        );
     }
 
 
