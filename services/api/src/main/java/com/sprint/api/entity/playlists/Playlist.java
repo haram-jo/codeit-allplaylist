@@ -51,4 +51,16 @@ public class Playlist extends BaseEntity {
         this.title = title;
         this.description = description;
     }
-}
+
+    // 구독자 수 증가 메서드
+    public void increaseSubscriberCount() {
+        this.subscriberCount++;
+    }
+
+    // 구독자 수 감소 메서드
+    public void decreaseSubscriberCount() {
+        if (this.subscriberCount > 0) {
+            this.subscriberCount--;
+        }
+    }
+  }

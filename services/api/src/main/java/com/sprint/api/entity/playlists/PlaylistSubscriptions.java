@@ -2,6 +2,8 @@ package com.sprint.api.entity.playlists;
 
 import com.sprint.api.entity.user.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.UUID;
@@ -17,6 +19,8 @@ import java.util.UUID;
 @Table(name = "playlist_subscriptions")
 @Getter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class PlaylistSubscriptions {
 
     @Id

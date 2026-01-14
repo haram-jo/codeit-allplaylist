@@ -1,13 +1,18 @@
 package com.sprint.api.service.Impl;
 
+import com.sprint.api.common.exception.CustomException;
+import com.sprint.api.common.exception.ErrorCode;
 import com.sprint.api.dto.playlists.CursorResponsePlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistCreateRequest;
 import com.sprint.api.dto.playlists.PlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistUpdateRequest;
 import com.sprint.api.dto.user.UserSummary;
 import com.sprint.api.entity.playlists.Playlist;
+import com.sprint.api.entity.playlists.PlaylistSubscriptions;
 import com.sprint.api.entity.user.User;
+import com.sprint.api.repository.playlist.PlaylistContentsRepository;
 import com.sprint.api.repository.playlist.PlaylistRepository;
+import com.sprint.api.repository.playlist.PlaylistSubscriptionsRepository;
 import com.sprint.api.repository.user.UserRepository;
 import com.sprint.api.service.playlists.PlaylistService;
 import lombok.RequiredArgsConstructor;
@@ -19,20 +24,24 @@ import java.util.UUID;
 
 /** 플레이리스트 서비스 구현체
    - 플레이리스트를 생성, 조회, 수정, 삭제하는 기능을 제공
+   - 플레이리스트 구독, 구독 취소, 콘텐츠 추가 및 삭제 기능
 * */
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class PlaylistServiceImpl implements PlaylistService {
 
     private final PlaylistRepository playlistRepository;
     private final UserRepository userRepository;
+    private final PlaylistSubscriptionsRepository subscriptionsRepository;
+    private final PlaylistContentsRepository playlistContentsRepository;
 
-    /** 1. 생성
-     - 사용자의 UUID를 통해 유저를 찾고,
-     - 플레이리스트를 저장한뒤
-     - PlaylistDto 구조에 맞춰 결과를 반환
+    /**
+     * 1. 생성
+     * - 사용자의 UUID를 통해 유저를 찾고,
+     * - 플레이리스트를 저장한뒤
+     * - PlaylistDto 구조에 맞춰 결과를 반환
      */
     @Override
     @Transactional
@@ -80,7 +89,8 @@ public class PlaylistServiceImpl implements PlaylistService {
         );
     }
 
-    /** 2. 단건조회
+    /**
+     * 2. 단건조회
      * - 플레이리스트 ID로 플레이리스트를 조회하고,
      * - PlaylistDto 구조에 맞춰 결과를 반환
      */
@@ -88,14 +98,15 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Transactional(readOnly = true)
     public PlaylistDto getPlaylist(UUID playlistId) {
         Playlist playlist = playlistRepository.findById(playlistId)
-                .orElseThrow(()-> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
         return convertToDto(playlist);
     }
 
-    /** 3. 수정
-     - 플레이리스트 ID로 플레이리스트를 조회하고,
-     - 현재 사용자가 작성자인지 확인한 뒤 플레이리스트 정보 업데이트,
-     - PlaylistDto 구조에 맞춰 결과를 반환
+    /**
+     * 3. 수정
+     * - 플레이리스트 ID로 플레이리스트를 조회하고,
+     * - 현재 사용자가 작성자인지 확인한 뒤 플레이리스트 정보 업데이트,
+     * - PlaylistDto 구조에 맞춰 결과를 반환
      */
     @Override
     @Transactional
@@ -111,9 +122,10 @@ public class PlaylistServiceImpl implements PlaylistService {
         return convertToDto(playlist);
     }
 
-    /** 4. 삭제
-     - 플레이리스트 ID로 플레이리스트를 조회하고,
-     - 현재 사용자가 작성자인지 확인한 뒤 플레이리스트 삭제
+    /**
+     * 4. 삭제
+     * - 플레이리스트 ID로 플레이리스트를 조회하고,
+     * - 현재 사용자가 작성자인지 확인한 뒤 플레이리스트 삭제
      */
     @Override
     @Transactional
@@ -129,8 +141,9 @@ public class PlaylistServiceImpl implements PlaylistService {
         playlistRepository.delete(playlist);
     }
 
-    /** 5. 목록조회
-     - 플레이리스트 목록을 조회하는 메서드 (미구현)
+    /**
+     * 5. 목록조회
+     * - 플레이리스트 목록을 조회하는 메서드 (미구현)
      */
     @Override
     @Transactional(readOnly = true)
@@ -138,5 +151,70 @@ public class PlaylistServiceImpl implements PlaylistService {
                                                   String cursor, UUID idAfter, int limit,
                                                   String sortDirection, String sortBy) {
         return null;
+    }
+
+
+    //========= 플레이리스트 구독 및 콘텐츠 관리 ========= //
+
+    /** 플레이리스트 구독 (등록)
+     * - param playlistId
+     * - param userId
+     */
+    @Override
+    @Transactional
+    public void createPlaylistSubscription(UUID playlistId, UUID userId) {
+        // 1. 중복 구독 체크
+        if (subscriptionsRepository.existsByPlaylistIdAndUserId(playlistId, userId.toString())) {
+            throw new CustomException(ErrorCode.ALREADY_SUBSCRIBED);
+        }
+
+        // 2. 플레이리스트 조회
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
+
+        // 3. 유저 조회
+        User user = userRepository.findById(userId.toString())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 4. 구독 정보 저장 (userId 대신 user 객체를 전달)
+        PlaylistSubscriptions subscription = PlaylistSubscriptions.builder()
+                .playlist(playlist)
+                .user(user) // 엔티티 필드명에 맞게 .user() 호출
+                .build();
+
+        subscriptionsRepository.save(subscription);
+
+        // 5. 구독자 수 증가
+        playlist.increaseSubscriberCount();
+    }
+
+    /** 플레이리스트 구독취소
+     *  - param playlistId
+     *  - param userId
+     * */
+    @Override
+    @Transactional
+    public void deletePlaylistSubscription(UUID playlistId, UUID userId) {
+        // 1. 구독 정보 조회
+        PlaylistSubscriptions subscription = subscriptionsRepository.findByPlaylistIdAndUserId(playlistId, userId.toString())
+                .orElseThrow(() -> new CustomException(ErrorCode.SUBSCRIPTION_NOT_FOUND)); // 구독 중이 아닐 때 에러
+
+        // 2. 플레이리스트 조회 (구독자 수 감소를 위해)
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
+
+        // 3. 삭제 및 구독자 수 감소
+        subscriptionsRepository.delete(subscription);
+        playlist.decreaseSubscriberCount();
+    }
+
+    @Override
+    public void createPlaylistContent(UUID playlistId, UUID contentId, UUID userId) {
+
+    }
+
+    @Override
+    public void deletePlaylistContent(UUID playlistId, UUID contentId, UUID userId) {
+
     }
 }

@@ -102,6 +102,57 @@ public class PlaylistController {
 
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * 플레이리스트 구독 (등록)
+     */
+    @PostMapping("/{playlistId}/subscription")
+    public ResponseEntity<Void> createPlaylistSubscription(
+            @PathVariable UUID playlistId,
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
+    ) {
+        playlistService.createPlaylistSubscription(playlistId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 플레이리스트 구독 취소 (삭제)
+     */
+    @DeleteMapping("/{playlistId}/subscription")
+    public ResponseEntity<Void> deletePlaylistSubscription(
+            @PathVariable UUID playlistId,
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
+    ) {
+        playlistService.deletePlaylistSubscription(playlistId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 플레이리스트에 콘텐츠 추가 (등록)
+     */
+    @PostMapping("/{playlistId}/contents/{contentId}")
+    public ResponseEntity<Void> createPlaylistContent(
+            @PathVariable UUID playlistId,
+            @PathVariable UUID contentId,
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
+    ) {
+        // 컨벤션: 등록 기능은 'create' 접두어 사용 및 메서드명 일치
+        playlistService.createPlaylistContent(playlistId, contentId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 플레이리스트에서 콘텐츠 삭제
+     */
+    @DeleteMapping("/{playlistId}/contents/{contentId}")
+    public ResponseEntity<Void> deletePlaylistContent(
+            @PathVariable UUID playlistId,
+            @PathVariable UUID contentId,
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
+    ) {
+        playlistService.deletePlaylistContent(playlistId, contentId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
 }
 
 
