@@ -147,7 +147,8 @@ public class PlaylistServiceImpl implements PlaylistService {
 
     /**
      * 5. 목록조회
-     * - 플레이리스트 목록을 조회하는 메서드 (미구현)
+     * - 플레이리스트 목록을 조회
+     * - 커서 기반 페이징 처리
      */
     @Override
     @Transactional(readOnly = true)
@@ -155,30 +156,29 @@ public class PlaylistServiceImpl implements PlaylistService {
                                                   String cursor, UUID idAfter, int limit,
                                                   String sortDirection, String sortBy) {
 
-        // 1. DB에서 limit + 1개를 조회 (다음 페이지 존재 여부 확인용)
-        // Playlist용 Repository Custom 메서드가 필요합니다.
+        // DB에서 limit + 1개를 조회
         List<Playlist> entities = playlistRepository.findAllByCursor(
                 keywordLike, ownerIdEqual, subscriberIdEqual,
                 cursor, idAfter, limit,
                 sortDirection, sortBy);
 
-        // 2. 다음 페이지(hasNext) 판단 및 실제 데이터(limit개) 절삭
+        // 다음 페이지(hasNext) 판단
         boolean hasNext = entities.size() > limit;
         List<Playlist> resultData = hasNext ? entities.subList(0, limit) : entities;
 
-        // 3. Entity -> DTO 변환 (기존에 만들어두신 convertToDto 사용)
+        // Entity -> DTO 변환
         List<PlaylistDto> data = resultData.stream()
                 .map(this::convertToDto)
                 .toList();
 
-        // 4. 다음 페이지 요청을 위한 커서(nextCursor, nextIdAfter) 생성
+        // 다음 페이지 요청을 위한 커서(nextCursor, nextIdAfter) 생성
         String nextCursor = null;
         UUID nextIdAfter = null;
 
         if (hasNext && !resultData.isEmpty()) {
             Playlist lastItem = resultData.get(resultData.size() - 1);
 
-            // Swagger 기준 정렬 조건: updatedAt(날짜), subscribeCount(숫자)
+            // 정렬조건: 최신순, 구독순
             nextCursor = switch (sortBy) {
                 case "subscribeCount" -> String.valueOf(lastItem.getSubscriberCount());
                 default -> lastItem.getUpdatedAt().toString(); // 최신순
@@ -187,7 +187,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             nextIdAfter = lastItem.getId();
         }
 
-        // 5. 전체 개수 조회
+        // 전체 개수 조회
         long totalCount = playlistRepository.countByConditions(keywordLike, ownerIdEqual, subscriberIdEqual);
 
         // DTO의 enum 타입에 맞춰 변환
@@ -293,7 +293,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             throw new CustomException(ErrorCode.ALREADY_ADDED_CONTENT);
         }
 
-        // 4. 저장 (연관관계 편의 메서드가 있다면 활용)
+        // 4. 저장
         PlaylistContents playlistContents = PlaylistContents.builder()
                 .playlist(playlist)
                 .content(content)
