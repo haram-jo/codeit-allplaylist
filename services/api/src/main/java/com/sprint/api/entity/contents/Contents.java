@@ -1,7 +1,7 @@
 package com.sprint.api.entity.contents;
 
 import com.sprint.api.common.BaseEntity;
-import jakarta.persistence.*;
+import com.sprint.api.entity.playlists.PlaylistContents;import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -48,8 +48,13 @@ public class Contents extends BaseEntity {
 
     // 태그와의 연관 관계
     @Builder.Default
-    @OneToMany(mappedBy = "contents", cascade = CascadeType.ALL, orphanRemoval = true) // 컨텐츠가 PK 주인
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true) // 컨텐츠가 PK 주인
     private List<ContentTag> contentTags = new ArrayList<>();
+
+    // 이 컨텐츠가 어떤 플레이리스트들에 포함되어 있는지 역방향 참조
+    @Builder.Default
+    @OneToMany(mappedBy = "contents", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlaylistContents> includedPlaylists = new ArrayList<>();
 
     // 콘텐츠에 태그 추가할때 쓰는 메서드
     public void addTag(ContentTag contentTag) {
