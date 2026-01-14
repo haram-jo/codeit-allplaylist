@@ -147,14 +147,64 @@ public class PlaylistServiceImpl implements PlaylistService {
 
     /**
      * 5. 목록조회
-     * - 플레이리스트 목록을 조회하는 메서드 (미구현)
+     * - 플레이리스트 목록을 조회
+     * - 커서 기반 페이징 처리
      */
     @Override
     @Transactional(readOnly = true)
     public CursorResponsePlaylistDto getPlaylists(String keywordLike, UUID ownerIdEqual, UUID subscriberIdEqual,
                                                   String cursor, UUID idAfter, int limit,
                                                   String sortDirection, String sortBy) {
-        return null;
+
+        // DB에서 limit + 1개를 조회
+        List<Playlist> entities = playlistRepository.findAllByCursor(
+                keywordLike, ownerIdEqual, subscriberIdEqual,
+                cursor, idAfter, limit,
+                sortDirection, sortBy);
+
+        // 다음 페이지(hasNext) 판단
+        boolean hasNext = entities.size() > limit;
+        List<Playlist> resultData = hasNext ? entities.subList(0, limit) : entities;
+
+        // Entity -> DTO 변환
+        List<PlaylistDto> data = resultData.stream()
+                .map(this::convertToDto)
+                .toList();
+
+        // 다음 페이지 요청을 위한 커서(nextCursor, nextIdAfter) 생성
+        String nextCursor = null;
+        UUID nextIdAfter = null;
+
+        if (hasNext && !resultData.isEmpty()) {
+            Playlist lastItem = resultData.get(resultData.size() - 1);
+
+            // 정렬조건: 최신순, 구독순
+            nextCursor = switch (sortBy) {
+                case "subscribeCount" -> String.valueOf(lastItem.getSubscriberCount());
+                default -> lastItem.getUpdatedAt().toString(); // 최신순
+            };
+
+            nextIdAfter = lastItem.getId();
+        }
+
+        // 전체 개수 조회
+        long totalCount = playlistRepository.countByConditions(keywordLike, ownerIdEqual, subscriberIdEqual);
+
+        // DTO의 enum 타입에 맞춰 변환
+        CursorResponsePlaylistDto.SortDirection direction =
+                sortDirection.equalsIgnoreCase("ASCENDING") ?
+                        CursorResponsePlaylistDto.SortDirection.ASCENDING :
+                        CursorResponsePlaylistDto.SortDirection.DESCENDING;
+
+        return new CursorResponsePlaylistDto(
+                data,
+                nextCursor,
+                nextIdAfter,
+                hasNext,
+                totalCount,
+                sortBy,
+                direction
+        );
     }
 
 
@@ -243,7 +293,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             throw new CustomException(ErrorCode.ALREADY_ADDED_CONTENT);
         }
 
-        // 4. 저장 (연관관계 편의 메서드가 있다면 활용)
+        // 4. 저장
         PlaylistContents playlistContents = PlaylistContents.builder()
                 .playlist(playlist)
                 .content(content)
@@ -259,6 +309,7 @@ public class PlaylistServiceImpl implements PlaylistService {
      * - param userId
      *
      */
+    @Override
     @Transactional
     public void deletePlaylistContent(UUID playlistId, UUID contentId, UUID userId) {
 

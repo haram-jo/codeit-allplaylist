@@ -20,7 +20,7 @@ import static com.sprint.api.entity.contents.QContents.contents;
  */
 
 @RequiredArgsConstructor
-public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
+public class ContentsRepositoryCustomImpl implements ContentsRepositoryCustom {
 
     // JPA 쿼리를 자바 코드로 짤 수 있게 해주는 공장
     private final JPAQueryFactory queryFactory; // Config에서 등록한 빈이 여길로 들어옴
