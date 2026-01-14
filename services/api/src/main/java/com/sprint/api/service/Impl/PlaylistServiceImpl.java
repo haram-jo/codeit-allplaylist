@@ -7,9 +7,12 @@ import com.sprint.api.dto.playlists.PlaylistCreateRequest;
 import com.sprint.api.dto.playlists.PlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistUpdateRequest;
 import com.sprint.api.dto.user.UserSummary;
+import com.sprint.api.entity.contents.Contents;
 import com.sprint.api.entity.playlists.Playlist;
+import com.sprint.api.entity.playlists.PlaylistContents;
 import com.sprint.api.entity.playlists.PlaylistSubscriptions;
 import com.sprint.api.entity.user.User;
+import com.sprint.api.repository.contents.ContentsRepository;
 import com.sprint.api.repository.playlist.PlaylistContentsRepository;
 import com.sprint.api.repository.playlist.PlaylistRepository;
 import com.sprint.api.repository.playlist.PlaylistSubscriptionsRepository;
@@ -36,6 +39,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     private final UserRepository userRepository;
     private final PlaylistSubscriptionsRepository subscriptionsRepository;
     private final PlaylistContentsRepository playlistContentsRepository;
+    private final ContentsRepository contentsRepository;
 
     /**
      * 1. 생성
@@ -156,7 +160,8 @@ public class PlaylistServiceImpl implements PlaylistService {
 
     //========= 플레이리스트 구독 및 콘텐츠 관리 ========= //
 
-    /** 플레이리스트 구독 (등록)
+    /**
+     * 플레이리스트 구독 (등록)
      * - param playlistId
      * - param userId
      */
@@ -188,10 +193,12 @@ public class PlaylistServiceImpl implements PlaylistService {
         playlist.increaseSubscriberCount();
     }
 
-    /** 플레이리스트 구독취소
-     *  - param playlistId
-     *  - param userId
-     * */
+    /**
+     * 플레이리스트 구독취소
+     * - param playlistId
+     * - param userId
+     *
+     */
     @Override
     @Transactional
     public void deletePlaylistSubscription(UUID playlistId, UUID userId) {
@@ -208,13 +215,66 @@ public class PlaylistServiceImpl implements PlaylistService {
         playlist.decreaseSubscriberCount();
     }
 
+    /**
+     * 플레이리스트 콘텐츠 추가
+     * - param playlistId
+     * - param contentId
+     * - param userId
+     *
+     */
     @Override
-    public void createPlaylistContent(UUID playlistId, UUID contentId, UUID userId) {
+    @Transactional
+    public void createPlaylistContent(UUID playlistId, UUID contentId, UUID userId) { //엔티티 필드보고 타입 판단!
+        // 1. 플레이리스트 존재 여부 및 소유권 확인
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
 
+        // 플레이리스트 소유권 확인 (내 플리인지 체크)
+        if (!playlist.getUser().getId().equals(userId.toString())) {
+            throw new CustomException(ErrorCode.FORBIDDEN_ACCESS);
+        }
+
+        // 2. 콘텐츠 존재 여부 확인
+        Contents content = contentsRepository.findById(contentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
+
+        // 3. 중복 추가 방지
+        if (playlistContentsRepository.existsByPlaylistIdAndContentId(playlistId, contentId)) {
+            throw new CustomException(ErrorCode.ALREADY_ADDED_CONTENT);
+        }
+
+        // 4. 저장 (연관관계 편의 메서드가 있다면 활용)
+        PlaylistContents playlistContents = PlaylistContents.builder()
+                .playlist(playlist)
+                .content(content)
+                .build();
+
+        playlistContentsRepository.save(playlistContents);
     }
 
-    @Override
+    /**
+     * 플레이리스트 콘텐츠 삭제
+     * - param playlistId
+     * - param contentId
+     * - param userId
+     *
+     */
+    @Transactional
     public void deletePlaylistContent(UUID playlistId, UUID contentId, UUID userId) {
 
+        // 소유권 확인 (내 플리인지)
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
+
+        // .toString()을 사용하여 비교
+        if (!playlist.getUser().getId().equals(userId.toString())) {
+            throw new CustomException(ErrorCode.FORBIDDEN_ACCESS);
+        }
+
+        // 중간 테이블에서 데이터 찾아 삭제
+        PlaylistContents pc = playlistContentsRepository.findByPlaylistIdAndContentId(playlistId, contentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
+
+        playlistContentsRepository.delete(pc);
     }
 }

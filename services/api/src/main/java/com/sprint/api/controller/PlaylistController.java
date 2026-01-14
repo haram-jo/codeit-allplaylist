@@ -129,6 +129,7 @@ public class PlaylistController {
 
     /**
      * 플레이리스트에 콘텐츠 추가 (등록)
+     * - 어떤 플레이리스트에 어떤 콘텐츠를 넣을 것인가
      */
     @PostMapping("/{playlistId}/contents/{contentId}")
     public ResponseEntity<Void> createPlaylistContent(
@@ -136,7 +137,6 @@ public class PlaylistController {
             @PathVariable UUID contentId,
             @AuthenticationPrincipal CustomUserDetailsDto userDetails
     ) {
-        // 컨벤션: 등록 기능은 'create' 접두어 사용 및 메서드명 일치
         playlistService.createPlaylistContent(playlistId, contentId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }

@@ -2,6 +2,8 @@ package com.sprint.api.entity.playlists;
 
 import com.sprint.api.entity.contents.Contents;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.UUID;
@@ -16,6 +18,8 @@ import java.util.UUID;
 @Table(name = "playlist_contents")
 @Getter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class PlaylistContents {
 
     @Id
