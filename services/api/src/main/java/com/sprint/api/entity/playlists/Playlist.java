@@ -5,6 +5,8 @@ import com.sprint.api.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -34,9 +36,31 @@ public class Playlist extends BaseEntity {
     @Builder.Default
     private long subscriberCount = 0; // 구독자수 초기값 0으로 세팅
 
+    //플레이리스트에 담긴 컨텐츠와의 연결
+    @Builder.Default
+    @OneToMany(mappedBy = "playlist", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlaylistContents> playlistContents = new ArrayList<>();
+
+    //플레이리스트를 구독 중인 정보들과의 연결
+    @Builder.Default
+    @OneToMany(mappedBy = "playlist", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlaylistSubscriptions> subscriptions = new ArrayList<>();
+
     // 플레이리스트 정보 업데이트 메서드
     public void update(String title, String description) {
         this.title = title;
         this.description = description;
     }
-}
+
+    // 구독자 수 증가 메서드
+    public void increaseSubscriberCount() {
+        this.subscriberCount++;
+    }
+
+    // 구독자 수 감소 메서드
+    public void decreaseSubscriberCount() {
+        if (this.subscriberCount > 0) {
+            this.subscriberCount--;
+        }
+    }
+  }
