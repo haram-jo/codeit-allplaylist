@@ -15,9 +15,14 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 
-/* 스프링 시큐리티 설정 클래스
+/** 스프링 시큐리티 설정 클래스
   - HTTP 보안 설정 (세션 관리, CSRF 설정, 요청 권한 설정)
 */
 @Configuration
@@ -36,6 +41,22 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // CORS 설정 Bean (백엔드와 프론트 sse 무한로딩 해결용)
+    //@Bean
+    //public CorsConfigurationSource corsConfigurationSource() {
+    //    CorsConfiguration configuration = new CorsConfiguration();
+
+        // 프론트엔드 포트 허용
+    //    configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+    //    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    //    configuration.setAllowedHeaders(List.of("*"));
+        // 쿠키 전송을 위해 필수 설정
+    //    configuration.setAllowCredentials(true);
+
+    //    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    //    source.registerCorsConfiguration("/**", configuration);
+    //    return source;
+    //}
 
     // CustomLoginFilter 빈 등록
     @Bean
@@ -53,29 +74,33 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtProvider, userDetailsService);
     }
 
-
     // SecurityFilterChain 빈 등록
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 1. JWT를 쓰므로 서버에 세션 만들지 않도록 (Stateless)
+                // SSE 경로는 백엔드 기능 만들 때 다시 풀기 (주석 처리)
+                //.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // JWT를 쓰므로 서버에 세션 만들지 않도록 (Stateless)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
 
 
-                //배포시 주석풀기 (쿠키 저장 방식)
+                // 배포시 주석풀기 (쿠키 저장 방식)
                 //csrf(csrf -> csrf
                 //        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // CSRF 토큰을 쿠키에 저장
                 //       .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()) // CSRF 핸들러 설정
 
 
-                // 2-1. 로컬 개발용 csrf
+                // 로컬 개발용 csrf
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
                         // 인증 없이 접근 가능한 POST 요청들 (회원가입, 로그인, 토큰 재발급)
                         .requestMatchers(HttpMethod.POST, "/api/users", "/api/auth/sign-in", "/api/auth/refresh").permitAll()
+                        // SSE 경로 추가
+                        //.requestMatchers("/api/sse", "/api/sse/**").permitAll()
                         // 나머지는 모두 인증(로그인) 필요
                         .anyRequest().authenticated()
                 );
