@@ -55,6 +55,17 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         // Redis에 새 리프레시 토큰 저장 (7일)
         redisService.saveRefreshToken(email, refreshToken, 60 * 60 * 24 * 7);
 
+        // ================== [여기서부터 추가] ==================
+        // 브라우저 쿠키 저장소에 REFRESH_TOKEN을 직접 심어줍니다.
+        String cookieValue = "REFRESH_TOKEN=" + refreshToken +
+                "; Path=/" +                // 모든 경로에서 쿠키 사용 가능
+                "; HttpOnly" +            // JS에서 접근 불가 (보안)
+                "; Max-Age=" + (60 * 60 * 24 * 7) + // 7일 유지
+                "; SameSite=Lax";         // 크로스 도메인 설정 (필요시)
+
+        response.addHeader("Set-Cookie", cookieValue);
+        // =====================================================
+
         response.setContentType("application/json;charset=UTF-8");
         Map<String, String> tokens = Map.of(
                 "accessToken", accessToken,

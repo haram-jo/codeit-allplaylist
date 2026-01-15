@@ -74,9 +74,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
-                        //로그인과 회원가입은 아무나 접근 가능
-                        .requestMatchers(HttpMethod.POST, "/api/users", "/api/auth/sign-in").permitAll()
-                        // 나머지는 인증(로그인) 필요
+                        // 인증 없이 접근 가능한 POST 요청들 (회원가입, 로그인, 토큰 재발급)
+                        .requestMatchers(HttpMethod.POST, "/api/users", "/api/auth/sign-in", "/api/auth/refresh").permitAll()
+                        // 나머지는 모두 인증(로그인) 필요
                         .anyRequest().authenticated()
                 );
 
