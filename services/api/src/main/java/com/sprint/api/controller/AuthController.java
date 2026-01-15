@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+/** 인증 컨트롤러
+ * - 리프레시 토큰을 이용한 액세스 토큰 재발급 처리
+ * - Redis와 JWT를 함께 사용하여 보안 강화
+ */
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,7 +24,7 @@ public class AuthController {
 
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
-    private final UserRepository userRepository; // 유저 확인용
+    private final UserRepository userRepository;
 
     @PostMapping("/refresh")
     public ResponseEntity<?> reissueToken(
@@ -56,12 +59,11 @@ public class AuthController {
         // 6. Redis 및 응답 갱신
         redisService.saveRefreshToken(email, newRefresh, 60 * 60 * 24 * 7);
 
-        // 7. JwtDto 구조에 맞춰서 응답 생성 (명세서 일치 작업)
         UserDto userDto = UserDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
-                .role(user.getRole()) // GNB에서 이 값을 읽습니다!
+                .role(user.getRole())
                 .profileImageUrl(user.getProfileImageUrl())
                 .build();
 

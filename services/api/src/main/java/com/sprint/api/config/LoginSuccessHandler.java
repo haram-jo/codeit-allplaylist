@@ -2,6 +2,8 @@ package com.sprint.api.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.api.dto.user.CustomUserDetailsDto;
+import com.sprint.api.dto.user.JwtDto;
+import com.sprint.api.dto.user.UserDto;
 import com.sprint.api.service.redis.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,7 +13,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Map;
 
 
 /** 로그인 성공 핸들러 클래스
@@ -38,7 +39,7 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         // Principal에서 CustomUserDetailsDto를 꺼냄
         CustomUserDetailsDto userDetails = (CustomUserDetailsDto) authentication.getPrincipal();
-
+        var userEntity = userDetails.getUser();
         // 유저 UUID 가져옴 (토큰용)
         String userId = userDetails.getUser().getId().toString();
 
@@ -55,8 +56,7 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         // Redis에 새 리프레시 토큰 저장 (7일)
         redisService.saveRefreshToken(email, refreshToken, 60 * 60 * 24 * 7);
 
-        // ================== [여기서부터 추가] ==================
-        // 브라우저 쿠키 저장소에 REFRESH_TOKEN을 직접 심어줍니다.
+        // 브라우저 쿠키 저장소에 REFRESH_TOKEN을 심어줌
         String cookieValue = "REFRESH_TOKEN=" + refreshToken +
                 "; Path=/" +                // 모든 경로에서 쿠키 사용 가능
                 "; HttpOnly" +            // JS에서 접근 불가 (보안)
@@ -64,14 +64,23 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                 "; SameSite=Lax";         // 크로스 도메인 설정 (필요시)
 
         response.addHeader("Set-Cookie", cookieValue);
-        // =====================================================
 
+        // JwtDto 구조에 맞춰서 응답 생성
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .email(email)
+                .name(userEntity.getName())
+                .role(userEntity.getRole())
+                .profileImageUrl(userEntity.getProfileImageUrl())
+                .build();
+
+        JwtDto jwtDto = JwtDto.builder()
+                .accessToken(accessToken)
+                .userDto(userDto)
+                .build();
+
+        // JSON 출력
         response.setContentType("application/json;charset=UTF-8");
-        Map<String, String> tokens = Map.of(
-                "accessToken", accessToken,
-                "refreshToken", refreshToken
-        );
-
-        response.getWriter().write(objectMapper.writeValueAsString(tokens));
+        response.getWriter().write(objectMapper.writeValueAsString(jwtDto));
     }
 }
