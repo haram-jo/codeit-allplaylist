@@ -31,4 +31,9 @@ public class RedisService {
                 durationSeconds,
                 TimeUnit.SECONDS); // 만료 시간 초 단위
     }
+
+    // Redis에서 리프레시 토큰 조회
+    public String getRefreshToken(String email) {
+        return redisTemplate.opsForValue().get("RT:" + email);
+    }
 }
