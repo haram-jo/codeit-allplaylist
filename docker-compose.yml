@@ -11,12 +11,44 @@ services:
     networks:
       - app-network
 
+  #1-1. MySQL 붙이고나서 추가해줘야 함
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+
+    # 1-2. Redis 추가
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
   # 2. API Server (Spring Boot)
   api:
     build:
       context: ./services/api # 여기를 수정! (api 폴더 안을 바라보게 함)
       dockerfile: Dockerfile # 해당 폴더 안의 Dockerfile 사용
     container_name: api
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    env_file:
+      - .env
     networks:
       - app-network
 
@@ -28,6 +60,9 @@ services:
     container_name: batch
     depends_on:
       - api
+      - mysql
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     networks:
       - app-network
 
@@ -35,3 +70,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mysql-data:

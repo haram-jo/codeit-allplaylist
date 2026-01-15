@@ -1,0 +1,7 @@
+rootProject.name = 'codeit-allplaylist'
+
+// 모듈 포함 설정
+include 'api'
+
+// 만약 폴더 구조가 services/api 라면 아래와 같이 경로를 지정해줘야 합니다.
+project(':api').projectDir = file('services/api')
