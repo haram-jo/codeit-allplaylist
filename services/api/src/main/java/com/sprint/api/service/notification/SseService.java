@@ -9,9 +9,10 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- *
+/** SSE 연결 서비스
+ * - 구독, 전송 단계로 나누어짐
  */
+
 @Service
 public class SseService {
 
@@ -20,7 +21,6 @@ public class SseService {
 
     /**
      * SSE Subscribe 구독 단계
-     * 컨벤션 가이드: 등록/연결 단계이므로 별도의 입구 메서드로 관리
      */
     public SseEmitter subscribe(String userId) {
         // 1시간 단위로 연결 유지 설정
@@ -60,3 +60,10 @@ public class SseService {
         }
     }
 }
+
+
+
+
+
+
+

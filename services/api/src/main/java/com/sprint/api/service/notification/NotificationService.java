@@ -28,6 +28,7 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final SseService sseService;
+
     /**
      * 알림 목록 조회 (커서 페이지네이션)
      */
