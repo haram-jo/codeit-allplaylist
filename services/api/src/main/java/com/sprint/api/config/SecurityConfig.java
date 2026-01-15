@@ -13,8 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -41,22 +39,22 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // CORS 설정 Bean (백엔드와 프론트 sse 무한로딩 해결용)
-    //@Bean
-    //public CorsConfigurationSource corsConfigurationSource() {
-    //    CorsConfiguration configuration = new CorsConfiguration();
+    // CORS 설정 (백엔드와 프론트 sse 무한로딩 해결용)
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
 
         // 프론트엔드 포트 허용
-    //    configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-    //    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    //    configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
         // 쿠키 전송을 위해 필수 설정
-    //    configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true);
 
-    //    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    //    source.registerCorsConfiguration("/**", configuration);
-    //    return source;
-    //}
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     // CustomLoginFilter 빈 등록
     @Bean
@@ -78,14 +76,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // SSE 경로는 백엔드 기능 만들 때 다시 풀기 (주석 처리)
-                //.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // SSE 경로
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // JWT를 쓰므로 서버에 세션 만들지 않도록 (Stateless)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-
 
                 // 배포시 주석풀기 (쿠키 저장 방식)
                 //csrf(csrf -> csrf
@@ -100,7 +96,7 @@ public class SecurityConfig {
                         // 인증 없이 접근 가능한 POST 요청들 (회원가입, 로그인, 토큰 재발급)
                         .requestMatchers(HttpMethod.POST, "/api/users", "/api/auth/sign-in", "/api/auth/refresh").permitAll()
                         // SSE 경로 추가
-                        //.requestMatchers("/api/sse", "/api/sse/**").permitAll()
+                        .requestMatchers("/api/sse", "/api/sse/**").permitAll()
                         // 나머지는 모두 인증(로그인) 필요
                         .anyRequest().authenticated()
                 );

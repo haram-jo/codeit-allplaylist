@@ -71,14 +71,6 @@ tasks.named('test') {
 // ✅ Querydsl QClass 생성 위치 설정
 def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
 
-sourceSets {
-	main.java.srcDirs += [ querydslDir ]
-}
-
-tasks.withType(JavaCompile) {
-	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
-}
-
 clean {
 	delete file(querydslDir)
 }

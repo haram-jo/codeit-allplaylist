@@ -2,6 +2,7 @@ package com.sprint.api.service.Impl;
 
 import com.sprint.api.common.exception.CustomException;
 import com.sprint.api.common.exception.ErrorCode;
+import com.sprint.api.dto.notifications.NotificationLevel;
 import com.sprint.api.dto.playlists.CursorResponsePlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistCreateRequest;
 import com.sprint.api.dto.playlists.PlaylistDto;
@@ -17,6 +18,7 @@ import com.sprint.api.repository.playlist.PlaylistContentsRepository;
 import com.sprint.api.repository.playlist.PlaylistRepository;
 import com.sprint.api.repository.playlist.PlaylistSubscriptionsRepository;
 import com.sprint.api.repository.user.UserRepository;
+import com.sprint.api.service.notification.NotificationService;
 import com.sprint.api.service.playlists.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,8 +28,8 @@ import java.util.List;
 import java.util.UUID;
 
 /** 플레이리스트 서비스 구현체
-   - 플레이리스트를 생성, 조회, 수정, 삭제하는 기능을 제공
-   - 플레이리스트 구독, 구독 취소, 콘텐츠 추가 및 삭제 기능
+   - 플레이리스트 CRUD
+   - 플레이리스트 구독, 구독 취소, 콘텐츠 추가, 삭제
 * */
 
 @Service
@@ -40,6 +42,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     private final PlaylistSubscriptionsRepository subscriptionsRepository;
     private final PlaylistContentsRepository playlistContentsRepository;
     private final ContentsRepository contentsRepository;
+    private final NotificationService notificationService;
 
     /**
      * 1. 생성
@@ -211,7 +214,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     //========= 플레이리스트 구독 및 콘텐츠 관리 ========= //
 
     /**
-     * 플레이리스트 구독 (등록)
+     * 6. 플레이리스트 구독 (등록)
      * - param playlistId
      * - param userId
      */
@@ -241,10 +244,23 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         // 5. 구독자 수 증가
         playlist.increaseSubscriberCount();
+
+        // 6. 실시간 알림 발송 추가
+        // 플레이리스트 주인(playlist.getUser())에게 알림을 보냅니다.
+        String receiverId = playlist.getUser().getId();
+        String title = "새로운 구독자!";
+        String content = user.getName() + "님이 당신의 [" + playlist.getTitle() + "] 플리를 구독했습니다.";
+
+        notificationService.createNotification(
+                receiverId,
+                title,
+                content,
+                NotificationLevel.INFO
+        );
     }
 
     /**
-     * 플레이리스트 구독취소
+     * 7. 플레이리스트 구독취소
      * - param playlistId
      * - param userId
      *
@@ -266,7 +282,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     /**
-     * 플레이리스트 콘텐츠 추가
+     * 8. 플레이리스트 콘텐츠 추가
      * - param playlistId
      * - param contentId
      * - param userId
@@ -303,7 +319,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     /**
-     * 플레이리스트 콘텐츠 삭제
+     * 9. 플레이리스트 콘텐츠 삭제
      * - param playlistId
      * - param contentId
      * - param userId
