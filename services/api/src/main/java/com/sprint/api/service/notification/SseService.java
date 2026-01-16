@@ -27,9 +27,14 @@ public class SseService {
         SseEmitter emitter = new SseEmitter(60 * 1000L * 60);
         emitters.put(userId, emitter);
 
+
         // 연결 종료 처리
-        emitter.onCompletion(() -> emitters.remove(userId));
-        emitter.onTimeout(() -> emitters.remove(userId));
+        emitter.onCompletion(() -> {
+            emitters.remove(userId);
+        });
+        emitter.onTimeout(() -> {
+            emitters.remove(userId);
+        });
 
         // 503 에러 방지를 위한 초기 연결 메시지
         try {

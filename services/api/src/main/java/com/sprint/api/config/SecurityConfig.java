@@ -76,6 +76,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // 로컬 개발용 csrf
+                .csrf(csrf -> csrf.disable())
                 // SSE 경로
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
@@ -89,14 +91,12 @@ public class SecurityConfig {
                 //       .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()) // CSRF 핸들러 설정
 
 
-                // 로컬 개발용 csrf
-                .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
+                        // SSE 경로 추가
+                        .requestMatchers("/api/sse/**").permitAll()
                         // 인증 없이 접근 가능한 POST 요청들 (회원가입, 로그인, 토큰 재발급)
                         .requestMatchers(HttpMethod.POST, "/api/users", "/api/auth/sign-in", "/api/auth/refresh").permitAll()
-                        // SSE 경로 추가
-                        .requestMatchers("/api/sse", "/api/sse/**").permitAll()
                         // 나머지는 모두 인증(로그인) 필요
                         .anyRequest().authenticated()
                 );

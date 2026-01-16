@@ -2,6 +2,7 @@ package com.sprint.api.service.Impl;
 
 import com.sprint.api.common.exception.CustomException;
 import com.sprint.api.common.exception.ErrorCode;
+import com.sprint.api.dto.notifications.NotificationDto;
 import com.sprint.api.dto.notifications.NotificationLevel;
 import com.sprint.api.dto.playlists.CursorResponsePlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistCreateRequest;
@@ -19,6 +20,7 @@ import com.sprint.api.repository.playlist.PlaylistRepository;
 import com.sprint.api.repository.playlist.PlaylistSubscriptionsRepository;
 import com.sprint.api.repository.user.UserRepository;
 import com.sprint.api.service.notification.NotificationService;
+import com.sprint.api.service.notification.SseService;
 import com.sprint.api.service.playlists.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     private final PlaylistContentsRepository playlistContentsRepository;
     private final ContentsRepository contentsRepository;
     private final NotificationService notificationService;
+    private final SseService sseService;
 
     /**
      * 1. 생성
@@ -293,8 +296,18 @@ public class PlaylistServiceImpl implements PlaylistService {
                 content,
                 NotificationLevel.INFO
         );
-    }
 
+        NotificationDto testDto = new NotificationDto(
+                UUID.randomUUID(),                     // id (UUID 타입)
+                java.time.LocalDateTime.now(),         // createdAt
+                receiverId,                            // receiverId (String)
+                title,                                 // title
+                content,                               // content
+                NotificationLevel.INFO                 // level
+        );
+
+        sseService.sendNotification(receiverId, testDto);
+    }
     /**
      * 7. 플레이리스트 구독취소
      * - param playlistId

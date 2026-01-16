@@ -6,8 +6,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
-    depends_on:
-      - api
+    # API 컨테이너가 꺼져있으니까 잠시 주석 (로컬 API로 돌리는 중이니까)
+    #depends_on:
+    #  - api
+    # [핵심 추가] 로컬 호스트 주소를 인식하게 함
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - app-network
 

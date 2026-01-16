@@ -37,17 +37,14 @@ public class AuthController {
 
         // 2. 토큰에서 식별자 추출 (LoginSuccessHandler가 userId를 넣었으므로 userId가 나옴)
         String userIdStr = jwtProvider.getEmail(refreshToken);
-        System.out.println("토큰에서 나온 ID: " + userIdStr); // <- 서버 콘솔 확인
 
         // 3. Redis 조회를 위해 email 찾기 (핸들러가 email을 키로 저장했기 때문)
         var user = userRepository.findById(userIdStr)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         String email = user.getEmail();
-        System.out.println("조회된 이메일: " + email); // <- Redis Key와 일치해야 함
 
         // 4. Redis 대조
         String savedToken = redisService.getRefreshToken(email);
-        System.out.println("Redis 내 토큰 존재 여부: " + (savedToken != null));
         if (savedToken == null || !savedToken.equals(refreshToken)) {
             return ResponseEntity.status(401).body("토큰 정보가 일치하지 않습니다.");
         }
