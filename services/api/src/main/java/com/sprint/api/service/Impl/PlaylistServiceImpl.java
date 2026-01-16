@@ -23,6 +23,7 @@ import com.sprint.api.service.playlists.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sprint.api.dto.playlists.ContentSummary;
 
 import java.util.List;
 import java.util.UUID;
@@ -76,14 +77,41 @@ public class PlaylistServiceImpl implements PlaylistService {
      * 엔티티 -> DTO 변환, DTO에 적어도 되고, Impl에 적어도 됨
      */
     private PlaylistDto convertToDto(Playlist playlist) {
-        // UserSummary 생성
+
+        // 1. UserSummary 생성
         UserSummary owner = new UserSummary(
                 UUID.fromString(playlist.getUser().getId()),
                 playlist.getUser().getName(),
                 playlist.getUser().getProfileImageUrl()
         );
 
-        // PlaylistDto 생성
+        // 2. PlaylistContents -> ContentSummary 변환
+        List<ContentSummary> contents = playlist.getPlaylistContents().stream()
+                .map(playlistContent -> { // 변수명을 겹치지 않게 playlistContent로 변경
+                    var c = playlistContent.getContent();
+
+                    // 태그 리스트 추출
+                    List<String> tagList = (c.getContentTags() != null)
+                            ? c.getContentTags().stream()
+                            .map(ct -> ct.getTag().getTag())
+                            .toList()
+                            : List.of();
+
+                    // DTO 생성 (타입 변환 적용)
+                    return new ContentSummary(
+                            c.getId(),
+                            com.sprint.api.dto.playlists.ContentType.valueOf(c.getType().toUpperCase()), // String을 Enum으로 변환
+                            c.getTitle(),
+                            c.getDescription(),
+                            c.getThumbnailUrl(),
+                            tagList,
+                            c.getAverageRating() != null ? Double.valueOf(c.getAverageRating()) : 0.0, // Integer를 Double로 변환
+                            c.getReviewCount() != null ? c.getReviewCount() : 0
+                    );
+                })
+                .toList();
+
+        // 3. 최종 DTO 반환
         return new PlaylistDto(
                 playlist.getId(),
                 owner,
@@ -91,8 +119,8 @@ public class PlaylistServiceImpl implements PlaylistService {
                 playlist.getDescription(),
                 playlist.getUpdatedAt(),
                 playlist.getSubscriberCount(),
-                false,   //지금 로그인한 내가 이걸 구독 중인지
-                List.of() // contents (초기값)
+                false,
+                contents
         );
     }
 
