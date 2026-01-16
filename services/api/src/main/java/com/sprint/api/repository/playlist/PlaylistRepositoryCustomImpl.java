@@ -5,6 +5,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sprint.api.entity.playlists.Playlist;
+import com.sprint.api.entity.playlists.QPlaylistSubscriptions;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ public class PlaylistRepositoryCustomImpl implements PlaylistRepositoryCustom {
                 .where(
                         titleLike(keywordLike), // 검색창
                         ownerEq(ownerIdEqual), // 특정 사용자
+                        subscriberEq(subscriberIdEqual), // <-- 추가
                         cursorLt(cursor, sortBy)
                 )
                 .limit(limit + 1)
@@ -54,7 +56,8 @@ public class PlaylistRepositoryCustomImpl implements PlaylistRepositoryCustom {
                 .from(playlist)
                 .where(
                         titleLike(keywordLike),
-                        ownerEq(ownerIdEqual)
+                        ownerEq(ownerIdEqual),
+                        subscriberEq(subscriberIdEqual)
                 )
                 .fetchOne();
 
@@ -94,5 +97,21 @@ public class PlaylistRepositoryCustomImpl implements PlaylistRepositoryCustom {
             return new OrderSpecifier<>(order, playlist.subscriberCount);
         }
         return new OrderSpecifier<>(order, playlist.updatedAt);
+    }
+
+    /** 내가 구독한 플레이리스트 ID들만 조회하는 메서드
+     * - 내가 만든 플레이리스트는 제외
+     */
+    private BooleanExpression subscriberEq(UUID subscriberId) {
+        if (subscriberId == null) return null;
+
+        // 1. 구독 정보가 있는 플리여야 함 (조인 필요)
+        // 2. 동시에 소유자(owner)가 나인 것은 제외해야 함
+        return playlist.id.in(
+                queryFactory
+                        .select(QPlaylistSubscriptions.playlistSubscriptions.playlist.id)
+                        .from(QPlaylistSubscriptions.playlistSubscriptions)
+                        .where(QPlaylistSubscriptions.playlistSubscriptions.user.id.eq(subscriberId.toString()))
+        ).and(playlist.user.id.ne(subscriberId.toString())); // 내 플리는 제외
     }
 }
