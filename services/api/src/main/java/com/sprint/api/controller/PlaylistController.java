@@ -27,18 +27,29 @@ public class PlaylistController {
      */
     @GetMapping
     public ResponseEntity<CursorResponsePlaylistDto> getPlaylists(
-            @RequestParam(required = false) String keywordLike, // 검색 키워드
-            @RequestParam(required = false) UUID ownerIdEqual, // 소유자 ID
-            @RequestParam(required = false) UUID subscriberIdEqual, // 구독자 ID
-            @RequestParam(required = false) String cursor, // 커서
-            @RequestParam(required = false) UUID idAfter, // ID 이후
-            @RequestParam int limit, // 필수값, 한번에 가져올 개수
-            @RequestParam String sortDirection, // 필수값, 정렬 방향
-            @RequestParam String sortBy // 필수값, 정렬 기준
+            @RequestParam(required = false) String keywordLike,
+            @RequestParam(required = false) UUID ownerIdEqual,
+            @RequestParam(required = false) UUID subscriberIdEqual, // 내가 구독한 정보를 보여주기 위해
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) UUID idAfter,
+            @RequestParam int limit,
+            @RequestParam String sortDirection,
+            @RequestParam String sortBy,
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
     ) {
-        // 서비스 메소드명을 규칙에 따라 getPlaylists로 설정
+
+        UUID currentUserId = userDetails.getUserId();
+
         CursorResponsePlaylistDto response = playlistService.getPlaylists(
-                keywordLike, ownerIdEqual, subscriberIdEqual, cursor, idAfter, limit, sortDirection, sortBy
+                keywordLike,
+                ownerIdEqual,
+                subscriberIdEqual, // 내가 구독한 것만 남길지 말지
+                cursor,
+                idAfter,
+                limit,
+                sortDirection,
+                sortBy,
+                userDetails.getUserId() // 구독중 버튼 표시를 할지 말지
         );
         return ResponseEntity.ok(response);
     }
@@ -66,8 +77,12 @@ public class PlaylistController {
      * 플레이리스트 단건 조회
      */
     @GetMapping("/{playlistId}")
-    public ResponseEntity<PlaylistDto> getPlaylist(@PathVariable UUID playlistId) {
-        PlaylistDto response = playlistService.getPlaylist(playlistId);
+    public ResponseEntity<PlaylistDto> getPlaylist(
+            @PathVariable UUID playlistId,
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
+    ) {
+        PlaylistDto response = playlistService.getPlaylist(playlistId, userDetails.getUserId());
+
         return ResponseEntity.ok(response);
     }
 

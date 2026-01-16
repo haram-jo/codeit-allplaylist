@@ -12,11 +12,11 @@ public interface PlaylistService {
 
     PlaylistDto createPlaylist(@Valid PlaylistCreateRequest request, UUID currentUserId);
 
-    PlaylistDto getPlaylist(UUID playlistId);
+    PlaylistDto getPlaylist(UUID playlistId, UUID currentUserId);
 
     PlaylistDto updatePlaylist(UUID playlistId, PlaylistUpdateRequest request, UUID currentUserId);
 
-    CursorResponsePlaylistDto getPlaylists(String keywordLike, UUID ownerIdEqual, UUID subscriberIdEqual, String cursor, UUID idAfter, int limit, String sortDirection, String sortBy);
+    CursorResponsePlaylistDto getPlaylists(String keywordLike, UUID ownerIdEqual, UUID subscriberIdEqual, String cursor, UUID idAfter, int limit, String sortDirection, String sortBy,UUID currentUserId);
 
     void deletePlaylist(UUID playlistId, UUID currentUserId);
 
