@@ -40,6 +40,22 @@ public class PlaylistController {
         CursorResponsePlaylistDto response = playlistService.getPlaylists(
                 keywordLike, ownerIdEqual, subscriberIdEqual, cursor, idAfter, limit, sortDirection, sortBy
         );
+
+        // --- 여기부터 추가 (디버깅용) ---
+        System.out.println("=========================================");
+        System.out.println("조회된 플레이리스트 개수: " + response.data().size());
+        response.data().forEach(playlist -> {
+            System.out.println("플리 제목: " + playlist.title());
+            // contents가 null인지, 아니면 비어있는지 확인하는 것이 핵심입니다.
+            if (playlist.contents() != null) {
+                System.out.println("ㄴ 포함된 콘텐츠 개수: " + playlist.contents().size());
+                playlist.contents().forEach(c -> System.out.println("   - 콘텐츠 ID: " + c.id()));
+            } else {
+                System.out.println("ㄴ [경고] contents 리스트가 null입니다!");
+            }
+        });
+        System.out.println("=========================================");
+        // --- 여기까지 추가 ---
         return ResponseEntity.ok(response);
     }
 

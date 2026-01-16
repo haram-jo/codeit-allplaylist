@@ -15,7 +15,8 @@ public class TmdbScheduler {
 
 
     //@Scheduled(cron = "0 0 2 * * *") // 매일 새벽 2시에 실행 (초 분 시 일 월 요일)
-    @Scheduled(cron = "0 * * * * *") // 테스트를 위해 1분마다 실행으로 해놓았음
+    //@Scheduled(cron = "0 * * * * *") // 테스트를 위해 1분마다 실행으로 해놓았음
+    @Scheduled(cron = "0 */10 * * * *") // 10분
     public void createContentsDaily() {
         log.info("=== TMDB 인기 영화 자동 등록 스케줄러 시작 ===");
         try {
