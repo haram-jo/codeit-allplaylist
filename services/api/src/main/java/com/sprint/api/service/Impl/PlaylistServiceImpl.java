@@ -70,14 +70,13 @@ public class PlaylistServiceImpl implements PlaylistService {
         Playlist savedPlaylist = playlistRepository.save(playlist);
 
         // DTO로 변환하여 반환
-        return convertToDto(savedPlaylist);
+        return convertToDto(savedPlaylist, currentUserId);
     }
 
     /**
      * 엔티티 -> DTO 변환, DTO에 적어도 되고, Impl에 적어도 됨
      */
-    private PlaylistDto convertToDto(Playlist playlist) {
-
+    private PlaylistDto convertToDto(Playlist playlist, UUID currentUserId) {
         // 1. UserSummary 생성
         UserSummary owner = new UserSummary(
                 UUID.fromString(playlist.getUser().getId()),
@@ -85,33 +84,42 @@ public class PlaylistServiceImpl implements PlaylistService {
                 playlist.getUser().getProfileImageUrl()
         );
 
-        // 2. PlaylistContents -> ContentSummary 변환
-        List<ContentSummary> contents = playlist.getPlaylistContents().stream()
-                .map(playlistContent -> { // 변수명을 겹치지 않게 playlistContent로 변경
+        // 2. 구독 여부 체크 (실제 로직 반영)
+        boolean isSubscribed = false;
+        if (currentUserId != null) {
+            isSubscribed = subscriptionsRepository.existsByPlaylistIdAndUserId(
+                    playlist.getId(),
+                    currentUserId.toString()
+            );
+        }
+
+        // 3. PlaylistContents -> ContentSummary 변환
+        List<com.sprint.api.dto.playlists.ContentSummary> contents = playlist.getPlaylistContents().stream()
+                .map(playlistContent -> { // 변수명을 playlistContent로 변경하여 충돌 회피
                     var c = playlistContent.getContent();
 
-                    // 태그 리스트 추출
+                    // 태그 리스트 추출 로직 (getTags 에러 해결)
                     List<String> tagList = (c.getContentTags() != null)
                             ? c.getContentTags().stream()
                             .map(ct -> ct.getTag().getTag())
                             .toList()
                             : List.of();
 
-                    // DTO 생성 (타입 변환 적용)
-                    return new ContentSummary(
+                    return new com.sprint.api.dto.playlists.ContentSummary(
                             c.getId(),
-                            com.sprint.api.dto.playlists.ContentType.valueOf(c.getType().toUpperCase()), // String을 Enum으로 변환
+                            // String을 ContentType Enum으로 변환
+                            com.sprint.api.dto.playlists.ContentType.valueOf(c.getType().toUpperCase()),
                             c.getTitle(),
                             c.getDescription(),
                             c.getThumbnailUrl(),
                             tagList,
-                            c.getAverageRating() != null ? Double.valueOf(c.getAverageRating()) : 0.0, // Integer를 Double로 변환
+                            // Integer를 Double로 변환 (null 체크 포함)
+                            c.getAverageRating() != null ? Double.valueOf(c.getAverageRating()) : 0.0,
                             c.getReviewCount() != null ? c.getReviewCount() : 0
                     );
                 })
                 .toList();
 
-        // 3. 최종 DTO 반환
         return new PlaylistDto(
                 playlist.getId(),
                 owner,
@@ -119,7 +127,7 @@ public class PlaylistServiceImpl implements PlaylistService {
                 playlist.getDescription(),
                 playlist.getUpdatedAt(),
                 playlist.getSubscriberCount(),
-                false,
+                isSubscribed, // 이제 고정 false가 아닌 실제 구독 여부 전달
                 contents
         );
     }
@@ -131,10 +139,12 @@ public class PlaylistServiceImpl implements PlaylistService {
      */
     @Override
     @Transactional(readOnly = true)
-    public PlaylistDto getPlaylist(UUID playlistId) {
+    public PlaylistDto getPlaylist(UUID playlistId, UUID currentUserId) {
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
-        return convertToDto(playlist);
+
+        // 중요: 받아온 currentUserId를 convertToDto에 그대로 넘겨야 합니다.
+        return convertToDto(playlist, currentUserId);
     }
 
     /**
@@ -154,7 +164,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
         playlist.update(request.title(), request.description());
-        return convertToDto(playlist);
+        return convertToDto(playlist,currentUserId);
     }
 
     /**
@@ -185,7 +195,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Transactional(readOnly = true)
     public CursorResponsePlaylistDto getPlaylists(String keywordLike, UUID ownerIdEqual, UUID subscriberIdEqual,
                                                   String cursor, UUID idAfter, int limit,
-                                                  String sortDirection, String sortBy) {
+                                                  String sortDirection, String sortBy,UUID currentUserId) {
 
         // DB에서 limit + 1개를 조회
         List<Playlist> entities = playlistRepository.findAllByCursor(
@@ -199,7 +209,7 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         // Entity -> DTO 변환
         List<PlaylistDto> data = resultData.stream()
-                .map(this::convertToDto)
+                .map(p -> convertToDto(p,currentUserId)) // p는 리스트의 항목, 뒤에는 로그인 유저 ID 전달
                 .toList();
 
         // 다음 페이지 요청을 위한 커서(nextCursor, nextIdAfter) 생성
