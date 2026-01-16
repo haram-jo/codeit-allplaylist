@@ -43,12 +43,13 @@ public class PlaylistController {
         CursorResponsePlaylistDto response = playlistService.getPlaylists(
                 keywordLike,
                 ownerIdEqual,
-                currentUserId, // 현재 로그인한 내 ID를 넘김
+                subscriberIdEqual, //
                 cursor,
                 idAfter,
                 limit,
                 sortDirection,
-                sortBy
+                sortBy,
+                userDetails.getUserId() // 구독 버튼 바뀌는 인자값
         );
         return ResponseEntity.ok(response);
     }
