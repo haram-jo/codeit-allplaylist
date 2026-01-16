@@ -95,10 +95,9 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         // 3. PlaylistContents -> ContentSummary 변환
         List<com.sprint.api.dto.playlists.ContentSummary> contents = playlist.getPlaylistContents().stream()
-                .map(playlistContent -> { // 변수명을 playlistContent로 변경하여 충돌 회피
+                .map(playlistContent -> {
                     var c = playlistContent.getContent();
 
-                    // 태그 리스트 추출 로직 (getTags 에러 해결)
                     List<String> tagList = (c.getContentTags() != null)
                             ? c.getContentTags().stream()
                             .map(ct -> ct.getTag().getTag())
@@ -127,7 +126,7 @@ public class PlaylistServiceImpl implements PlaylistService {
                 playlist.getDescription(),
                 playlist.getUpdatedAt(),
                 playlist.getSubscriberCount(),
-                isSubscribed, // 이제 고정 false가 아닌 실제 구독 여부 전달
+                isSubscribed,
                 contents
         );
     }
@@ -143,7 +142,6 @@ public class PlaylistServiceImpl implements PlaylistService {
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
 
-        // 중요: 받아온 currentUserId를 convertToDto에 그대로 넘겨야 합니다.
         return convertToDto(playlist, currentUserId);
     }
 
@@ -284,7 +282,7 @@ public class PlaylistServiceImpl implements PlaylistService {
         playlist.increaseSubscriberCount();
 
         // 6. 실시간 알림 발송 추가
-        // 플레이리스트 주인(playlist.getUser())에게 알림을 보냅니다.
+        // 플레이리스트 주인(playlist.getUser())에게 알림 전송
         String receiverId = playlist.getUser().getId();
         String title = "새로운 구독자!";
         String content = user.getName() + "님이 당신의 [" + playlist.getTitle() + "] 플리를 구독했습니다.";

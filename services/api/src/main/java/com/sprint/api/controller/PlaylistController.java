@@ -29,13 +29,13 @@ public class PlaylistController {
     public ResponseEntity<CursorResponsePlaylistDto> getPlaylists(
             @RequestParam(required = false) String keywordLike,
             @RequestParam(required = false) UUID ownerIdEqual,
-            @RequestParam(required = false) UUID subscriberIdEqual,
+            @RequestParam(required = false) UUID subscriberIdEqual, // 내가 구독한 정보를 보여주기 위해
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) UUID idAfter,
             @RequestParam int limit,
             @RequestParam String sortDirection,
             @RequestParam String sortBy,
-            @AuthenticationPrincipal CustomUserDetailsDto userDetails //여기에 있던 ')' 를 지우고
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
     ) {
 
         UUID currentUserId = userDetails.getUserId();
@@ -43,13 +43,13 @@ public class PlaylistController {
         CursorResponsePlaylistDto response = playlistService.getPlaylists(
                 keywordLike,
                 ownerIdEqual,
-                subscriberIdEqual, //
+                subscriberIdEqual, // 내가 구독한 것만 남길지 말지
                 cursor,
                 idAfter,
                 limit,
                 sortDirection,
                 sortBy,
-                userDetails.getUserId() // 구독 버튼 바뀌는 인자값
+                userDetails.getUserId() // 구독중 버튼 표시를 할지 말지
         );
         return ResponseEntity.ok(response);
     }
@@ -79,10 +79,8 @@ public class PlaylistController {
     @GetMapping("/{playlistId}")
     public ResponseEntity<PlaylistDto> getPlaylist(
             @PathVariable UUID playlistId,
-            @AuthenticationPrincipal CustomUserDetailsDto userDetails // 1. 로그인 정보 추가
+            @AuthenticationPrincipal CustomUserDetailsDto userDetails
     ) {
-        // 2. 서비스 호출 시 playlistId와 현재 유저의 ID를 함께 전달
-        // (PlaylistService 인터페이스와 Impl에 파라미터를 추가한 것과 짝을 맞춰줍니다)
         PlaylistDto response = playlistService.getPlaylist(playlistId, userDetails.getUserId());
 
         return ResponseEntity.ok(response);
