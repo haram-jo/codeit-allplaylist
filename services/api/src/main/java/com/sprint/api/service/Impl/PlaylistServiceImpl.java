@@ -306,8 +306,6 @@ public class PlaylistServiceImpl implements PlaylistService {
                 NotificationLevel.INFO                 // level
         );
 
-        // 3. SSE 전송 및 로그 출력
-        System.out.println(">>> [직접 호출] SSE 전송 시도 - 타겟: " + receiverId);
         sseService.sendNotification(receiverId, testDto);
     }
     /**
