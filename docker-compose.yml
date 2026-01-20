@@ -63,10 +63,13 @@ services:
       dockerfile: Dockerfile
     container_name: batch
     depends_on:
-      - api
-      - mysql
+      - mysql   # api는 로컬에서 돌릴 거니까 여기서 삭제
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      - SPRING_PROFILES_ACTIVE=docker
+      - TMDB_ACCESS_TOKEN=${TMDB_ACCESS_TOKEN} # .env 대신 직접 넣어주거나 env_file 사용
+    # [추가] Batch가 로컬에서 돌아가는 API 서버를 찾을 수 있게 주소 매핑
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - app-network
 
