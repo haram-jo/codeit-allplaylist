@@ -51,24 +51,6 @@ public class TmdbService {
 
     @Transactional
     public void createContentsFromTmdb() {
-        log.info("✅ createContentsFromTmdb 메서드 시작됨"); // 추가
-
-        // 🔴 테스트용 강제 INSERT (딱 한 번 확인용)
-        if (!contentsRepository.existsByTmdbId(999999999L)) {
-            Contents test = Contents.builder()
-                    .tmdbId(999999999L) // 절대 TMDB에 없는 값
-                    .type("MOVIE")
-                    .title("배치 테스트 영화")
-                    .description("배치 정상 동작 확인용")
-                    .thumbnailUrl("test")
-                    .averageRating(10)
-                    .reviewCount(0)
-                    .watcherCount(0L)
-                    .build();
-
-            contentsRepository.save(test);
-            log.info("✅ 테스트용 콘텐츠 INSERT 완료");
-        }
         // 1. 외부 응답 DTO(Response)로 데이터 수신
         TmdbMovieResponse response = tmdbRestClient.get()
                 .uri(uriBuilder -> uriBuilder
