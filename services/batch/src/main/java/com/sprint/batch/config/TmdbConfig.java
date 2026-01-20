@@ -1,4 +1,4 @@
-package com.sprint.api.config;
+package com.sprint.batch.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
