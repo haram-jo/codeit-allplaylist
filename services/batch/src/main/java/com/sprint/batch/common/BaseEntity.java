@@ -11,8 +11,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Getter
-@MappedSuperclass // 중요: 이걸 붙여야 자식 엔티티들이 이 필드를 컬럼으로 인식함
-@EntityListeners(AuditingEntityListener.class) // 중요: 이벤트 감시자 등록
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
   @CreatedDate

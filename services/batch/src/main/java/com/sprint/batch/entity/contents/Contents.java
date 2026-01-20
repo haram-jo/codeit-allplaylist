@@ -1,6 +1,6 @@
-package com.sprint.batch.entity.contents; // 1. 사진 속 구조에 맞춘 패키지 경로
+package com.sprint.batch.entity.contents;
 
-import com.sprint.batch.common.BaseEntity; // 2. api -> batch 내의 경로로 수정
+import com.sprint.batch.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
