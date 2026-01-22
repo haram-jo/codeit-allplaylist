@@ -14,6 +14,8 @@ import com.sprint.api.entity.playlists.Playlist;
 import com.sprint.api.entity.playlists.PlaylistContents;
 import com.sprint.api.entity.playlists.PlaylistSubscriptions;
 import com.sprint.api.entity.user.User;
+import com.sprint.api.kafka.PlaylistEventProducer;
+import com.sprint.api.kafka.PlaylistSubscribedEvent;
 import com.sprint.api.repository.contents.ContentsRepository;
 import com.sprint.api.repository.playlist.PlaylistContentsRepository;
 import com.sprint.api.repository.playlist.PlaylistRepository;
@@ -47,6 +49,8 @@ public class PlaylistServiceImpl implements PlaylistService {
     private final ContentsRepository contentsRepository;
     private final NotificationService notificationService;
     private final SseService sseService;
+    private final PlaylistEventProducer playlistEventProducer;
+
 
     /**
      * 1. 생성
@@ -165,7 +169,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
         playlist.update(request.title(), request.description());
-        return convertToDto(playlist,currentUserId);
+        return convertToDto(playlist, currentUserId);
     }
 
     /**
@@ -196,7 +200,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Transactional(readOnly = true)
     public CursorResponsePlaylistDto getPlaylists(String keywordLike, UUID ownerIdEqual, UUID subscriberIdEqual,
                                                   String cursor, UUID idAfter, int limit,
-                                                  String sortDirection, String sortBy,UUID currentUserId) {
+                                                  String sortDirection, String sortBy, UUID currentUserId) {
 
         // DB에서 limit + 1개를 조회
         List<Playlist> entities = playlistRepository.findAllByCursor(
@@ -210,7 +214,7 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         // Entity -> DTO 변환
         List<PlaylistDto> data = resultData.stream()
-                .map(p -> convertToDto(p,currentUserId)) // p는 리스트의 항목, 뒤에는 로그인 유저 ID 전달
+                .map(p -> convertToDto(p, currentUserId)) // p는 리스트의 항목, 뒤에는 로그인 유저 ID 전달
                 .toList();
 
         // 다음 페이지 요청을 위한 커서(nextCursor, nextIdAfter) 생성
@@ -256,6 +260,8 @@ public class PlaylistServiceImpl implements PlaylistService {
      * 6. 플레이리스트 구독 (등록)
      * - param playlistId
      * - param userId
+     * - kafka 도입전: 구독처리와 알림발송 둘 다 처리
+     * - kafka 도입후: 구독처리만 하고, 알림발송은 kafka Counsumer가 처리
      */
     @Override
     @Transactional
@@ -284,30 +290,17 @@ public class PlaylistServiceImpl implements PlaylistService {
         // 5. 구독자 수 증가
         playlist.increaseSubscriberCount();
 
-        // 6. 실시간 알림 발송 추가
-        // 플레이리스트 주인(playlist.getUser())에게 알림 전송
-        String receiverId = playlist.getUser().getId();
-        String title = "새로운 구독자!";
-        String content = user.getName() + "님이 당신의 [" + playlist.getTitle() + "] 플리를 구독했습니다.";
-
-        notificationService.createNotification(
-                receiverId,
-                title,
-                content,
-                NotificationLevel.INFO
+        // 6. Kafka 이벤트 발행 (알림은 Consumer에서 처리)
+        PlaylistSubscribedEvent event = new PlaylistSubscribedEvent(
+                playlist.getId(),                     // playlistId
+                userId,                               // subscriberId
+                user.getName(),                       // subscriberName
+                UUID.fromString(playlist.getUser().getId()) // ownerId
         );
 
-        NotificationDto testDto = new NotificationDto(
-                UUID.randomUUID(),                     // id (UUID 타입)
-                java.time.LocalDateTime.now(),         // createdAt
-                receiverId,                            // receiverId (String)
-                title,                                 // title
-                content,                               // content
-                NotificationLevel.INFO                 // level
-        );
-
-        sseService.sendNotification(receiverId, testDto);
+        playlistEventProducer.send(event);
     }
+
     /**
      * 7. 플레이리스트 구독취소
      * - param playlistId

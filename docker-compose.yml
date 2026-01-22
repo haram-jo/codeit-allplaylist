@@ -84,7 +84,7 @@ services:
       - app-network
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.4.0
     ports:
       - "9092:9092" #도커 내부 포트 9092를 내 컴퓨터 포트 9092에 매핑
     environment:
