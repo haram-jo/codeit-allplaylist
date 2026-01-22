@@ -28,4 +28,7 @@ gradle-app.setting
 .env
 *.env
 
+.idea/
+*.iml
+
 
