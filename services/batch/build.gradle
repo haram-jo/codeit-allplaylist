@@ -50,8 +50,8 @@ dependencies {
 	// ✅ Micrometer
 	implementation 'io.micrometer:micrometer-core'
 
-
-
+	// ✅ Prometheus
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 
