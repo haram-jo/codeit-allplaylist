@@ -41,8 +41,17 @@ dependencies {
 	implementation 'com.mysql:mysql-connector-j'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	// ✅ JPA, MySQL 관련 (이게 있어야 jakarta.persistence 에러가 사라집니다)
+	// ✅ JPA, MySQL
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// ✅ Actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// ✅ Micrometer
+	implementation 'io.micrometer:micrometer-core'
+
+
+
 }
 
 
