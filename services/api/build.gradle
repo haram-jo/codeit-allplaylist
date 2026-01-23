@@ -70,6 +70,9 @@ dependencies {
 	// 테스트를 위한 설정 (선택 사항)
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+
 }
 
 tasks.named('test') {
