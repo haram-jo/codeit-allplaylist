@@ -8,6 +8,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/** 작업 단계 설정
+ * - 배치 작업의 개별 단계를 정의하는 구성 클래스
+ * */
+
 @Configuration
 @RequiredArgsConstructor
 public class TmdbStepConfig {
@@ -19,7 +23,6 @@ public class TmdbStepConfig {
     public Step tmdbStep() {
         return new StepBuilder("tmdbStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    // TODO: tmdbService 호출
                     return org.springframework.batch.repeat.RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
