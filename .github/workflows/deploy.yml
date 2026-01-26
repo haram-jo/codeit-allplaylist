@@ -5,7 +5,7 @@ on:
     branches: [ "develop" ] # develop 브랜치에 push될 때 실행
 
 env:
-  AWS_REGION: ap-northeast-2 # 서울 리전
+  AWS_REGION: us-east-1
 
 jobs:
   deploy:
@@ -28,6 +28,17 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Debug AWS Region
+        run: |
+          echo "AWS_REGION=$AWS_REGION"
+          echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+
+      - name: Debug ECR Registry
+        run: echo "${{ steps.login-ecr.outputs.registry }}"
+
+
+
 
       # 3. API 서버 빌드 및 푸시
       - name: Build and Push API Image
