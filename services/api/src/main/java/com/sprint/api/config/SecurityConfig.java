@@ -44,12 +44,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 프론트엔드 포트 허용
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        // [핵심 수정] 환경 변수에서 프론트엔드 주소를 가져오고, 없으면 로컬 주소를 기본값으로 사용
+        String frontendUrl = System.getenv("FRONTEND_URL");
+        if (frontendUrl == null) frontendUrl = "http://localhost:5173";
+
+        // 로컬과 실제 배포 주소를 모두 허용 목록에 넣습니다.
+        configuration.setAllowedOrigins(List.of(frontendUrl, "http://localhost:5173"));
+
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        // 쿠키 전송을 위해 필수 설정
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true); // 쿠키/인증정보 전송 허용
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -110,12 +114,3 @@ public class SecurityConfig {
                 return http.build();
             }
         }
-
-        /* 테스트 코드
-                .csrf(csrf -> csrf.disable()) // 테스트 위해 임시허용
-                // 모든 경로에 대해 접근 허용
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                );
-        http.addFilterBefore(customLoginFilter(), UsernamePasswordAuthenticationFilter.class);
-        */
