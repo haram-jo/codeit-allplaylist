@@ -2,7 +2,7 @@ name: Deploy to Amazon ECR
 
 on:
   push:
-    branches: [ "develop" ] # main 브랜치에 push될 때 실행
+    branches: [ "develop" ] # develop 브랜치에 push될 때 실행
 
 env:
   AWS_REGION: ap-northeast-2 # 서울 리전
