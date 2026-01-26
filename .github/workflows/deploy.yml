@@ -36,7 +36,7 @@ jobs:
           ECR_REPOSITORY: mopl-api # 아까 만든 ECR 이름
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./api
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./services/api
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # 4. Batch 서버 빌드 및 푸시
@@ -46,7 +46,7 @@ jobs:
           ECR_REPOSITORY: mopl-batch
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./batch
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./services/batch
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # 5. Gateway(Nginx) 빌드 및 푸시
@@ -56,5 +56,5 @@ jobs:
           ECR_REPOSITORY: mopl-gateway
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./gateway
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./services/gateway
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
