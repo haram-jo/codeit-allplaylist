@@ -2,6 +2,8 @@ package com.sprint.api.service.Impl;
 
 import com.sprint.api.common.exception.CustomException;
 import com.sprint.api.common.exception.ErrorCode;
+import com.sprint.api.dto.notifications.NotificationDto;
+import com.sprint.api.dto.notifications.NotificationLevel;
 import com.sprint.api.dto.playlists.CursorResponsePlaylistDto;
 import com.sprint.api.dto.playlists.PlaylistCreateRequest;
 import com.sprint.api.dto.playlists.PlaylistDto;
@@ -12,22 +14,27 @@ import com.sprint.api.entity.playlists.Playlist;
 import com.sprint.api.entity.playlists.PlaylistContents;
 import com.sprint.api.entity.playlists.PlaylistSubscriptions;
 import com.sprint.api.entity.user.User;
+import com.sprint.api.kafka.PlaylistEventProducer;
+import com.sprint.api.kafka.PlaylistSubscribedEvent;
 import com.sprint.api.repository.contents.ContentsRepository;
 import com.sprint.api.repository.playlist.PlaylistContentsRepository;
 import com.sprint.api.repository.playlist.PlaylistRepository;
 import com.sprint.api.repository.playlist.PlaylistSubscriptionsRepository;
 import com.sprint.api.repository.user.UserRepository;
+import com.sprint.api.service.notification.NotificationService;
+import com.sprint.api.service.notification.SseService;
 import com.sprint.api.service.playlists.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sprint.api.dto.playlists.ContentSummary;
 
 import java.util.List;
 import java.util.UUID;
 
 /** 플레이리스트 서비스 구현체
-   - 플레이리스트를 생성, 조회, 수정, 삭제하는 기능을 제공
-   - 플레이리스트 구독, 구독 취소, 콘텐츠 추가 및 삭제 기능
+   - 플레이리스트 CRUD
+   - 플레이리스트 구독, 구독 취소, 콘텐츠 추가, 삭제
 * */
 
 @Service
@@ -40,6 +47,10 @@ public class PlaylistServiceImpl implements PlaylistService {
     private final PlaylistSubscriptionsRepository subscriptionsRepository;
     private final PlaylistContentsRepository playlistContentsRepository;
     private final ContentsRepository contentsRepository;
+    private final NotificationService notificationService;
+    private final SseService sseService;
+    private final PlaylistEventProducer playlistEventProducer;
+
 
     /**
      * 1. 생성
@@ -66,21 +77,55 @@ public class PlaylistServiceImpl implements PlaylistService {
         Playlist savedPlaylist = playlistRepository.save(playlist);
 
         // DTO로 변환하여 반환
-        return convertToDto(savedPlaylist);
+        return convertToDto(savedPlaylist, currentUserId);
     }
 
     /**
      * 엔티티 -> DTO 변환, DTO에 적어도 되고, Impl에 적어도 됨
      */
-    private PlaylistDto convertToDto(Playlist playlist) {
-        // UserSummary 생성
+    private PlaylistDto convertToDto(Playlist playlist, UUID currentUserId) {
+        // 1. UserSummary 생성
         UserSummary owner = new UserSummary(
                 UUID.fromString(playlist.getUser().getId()),
                 playlist.getUser().getName(),
                 playlist.getUser().getProfileImageUrl()
         );
 
-        // PlaylistDto 생성
+        // 2. 구독 여부 체크 (실제 로직 반영)
+        boolean isSubscribed = false;
+        if (currentUserId != null) {
+            isSubscribed = subscriptionsRepository.existsByPlaylistIdAndUserId(
+                    playlist.getId(),
+                    currentUserId.toString()
+            );
+        }
+
+        // 3. PlaylistContents -> ContentSummary 변환
+        List<com.sprint.api.dto.playlists.ContentSummary> contents = playlist.getPlaylistContents().stream()
+                .map(playlistContent -> {
+                    var c = playlistContent.getContent();
+
+                    List<String> tagList = (c.getContentTags() != null)
+                            ? c.getContentTags().stream()
+                            .map(ct -> ct.getTag().getTag())
+                            .toList()
+                            : List.of();
+
+                    return new com.sprint.api.dto.playlists.ContentSummary(
+                            c.getId(),
+                            // String을 ContentType Enum으로 변환
+                            com.sprint.api.dto.playlists.ContentType.valueOf(c.getType().toUpperCase()),
+                            c.getTitle(),
+                            c.getDescription(),
+                            c.getThumbnailUrl(),
+                            tagList,
+                            // Integer를 Double로 변환 (null 체크 포함)
+                            c.getAverageRating() != null ? Double.valueOf(c.getAverageRating()) : 0.0,
+                            c.getReviewCount() != null ? c.getReviewCount() : 0
+                    );
+                })
+                .toList();
+
         return new PlaylistDto(
                 playlist.getId(),
                 owner,
@@ -88,8 +133,8 @@ public class PlaylistServiceImpl implements PlaylistService {
                 playlist.getDescription(),
                 playlist.getUpdatedAt(),
                 playlist.getSubscriberCount(),
-                false,   //지금 로그인한 내가 이걸 구독 중인지
-                List.of() // contents (초기값)
+                isSubscribed,
+                contents
         );
     }
 
@@ -100,10 +145,11 @@ public class PlaylistServiceImpl implements PlaylistService {
      */
     @Override
     @Transactional(readOnly = true)
-    public PlaylistDto getPlaylist(UUID playlistId) {
+    public PlaylistDto getPlaylist(UUID playlistId, UUID currentUserId) {
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
-        return convertToDto(playlist);
+
+        return convertToDto(playlist, currentUserId);
     }
 
     /**
@@ -123,7 +169,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
         playlist.update(request.title(), request.description());
-        return convertToDto(playlist);
+        return convertToDto(playlist, currentUserId);
     }
 
     /**
@@ -154,7 +200,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Transactional(readOnly = true)
     public CursorResponsePlaylistDto getPlaylists(String keywordLike, UUID ownerIdEqual, UUID subscriberIdEqual,
                                                   String cursor, UUID idAfter, int limit,
-                                                  String sortDirection, String sortBy) {
+                                                  String sortDirection, String sortBy, UUID currentUserId) {
 
         // DB에서 limit + 1개를 조회
         List<Playlist> entities = playlistRepository.findAllByCursor(
@@ -168,7 +214,7 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         // Entity -> DTO 변환
         List<PlaylistDto> data = resultData.stream()
-                .map(this::convertToDto)
+                .map(p -> convertToDto(p, currentUserId)) // p는 리스트의 항목, 뒤에는 로그인 유저 ID 전달
                 .toList();
 
         // 다음 페이지 요청을 위한 커서(nextCursor, nextIdAfter) 생성
@@ -211,9 +257,11 @@ public class PlaylistServiceImpl implements PlaylistService {
     //========= 플레이리스트 구독 및 콘텐츠 관리 ========= //
 
     /**
-     * 플레이리스트 구독 (등록)
+     * 6. 플레이리스트 구독 (등록)
      * - param playlistId
      * - param userId
+     * - kafka 도입전: 구독처리와 알림발송 둘 다 처리
+     * - kafka 도입후: 구독처리만 하고, 알림발송은 kafka Counsumer가 처리
      */
     @Override
     @Transactional
@@ -241,10 +289,20 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         // 5. 구독자 수 증가
         playlist.increaseSubscriberCount();
+
+        // 6. Kafka 이벤트 발행 (알림은 Consumer에서 처리)
+        PlaylistSubscribedEvent event = new PlaylistSubscribedEvent(
+                playlist.getId(),                     // playlistId
+                userId,                               // subscriberId
+                user.getName(),                       // subscriberName
+                UUID.fromString(playlist.getUser().getId()) // ownerId
+        );
+
+        playlistEventProducer.send(event);
     }
 
     /**
-     * 플레이리스트 구독취소
+     * 7. 플레이리스트 구독취소
      * - param playlistId
      * - param userId
      *
@@ -266,7 +324,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     /**
-     * 플레이리스트 콘텐츠 추가
+     * 8. 플레이리스트 콘텐츠 추가
      * - param playlistId
      * - param contentId
      * - param userId
@@ -303,7 +361,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     /**
-     * 플레이리스트 콘텐츠 삭제
+     * 9. 플레이리스트 콘텐츠 삭제
      * - param playlistId
      * - param contentId
      * - param userId

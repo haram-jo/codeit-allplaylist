@@ -1,4 +1,4 @@
-package com.sprint.api.dto.contents;
+package com.sprint.batch.dto.contents;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

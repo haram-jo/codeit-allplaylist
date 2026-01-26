@@ -6,8 +6,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
-    depends_on:
-      - api
+    # API 컨테이너가 꺼져있으니까 잠시 주석 (로컬 API로 돌리는 중이니까)
+    #depends_on:
+    #  - api
+    # [핵심 추가] 로컬 호스트 주소를 인식하게 함
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - app-network
 
@@ -58,11 +62,61 @@ services:
       context: ./services/batch
       dockerfile: Dockerfile
     container_name: batch
+    ports:
+      - "8081:8081"
     depends_on:
-      - api
-      - mysql
+      - mysql   # api는 로컬에서 돌릴 거니까 여기서 삭제
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      - SPRING_PROFILES_ACTIVE=docker
+      - TMDB_ACCESS_TOKEN=${TMDB_ACCESS_TOKEN} # .env 대신 직접 넣어주거나 env_file 사용
+    # [추가] Batch가 로컬에서 돌아가는 API 서버를 찾을 수 있게 주소 매핑
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app-network
+
+  # 4.Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - app-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    ports:
+      - "9092:9092" #도커 내부 포트 9092를 내 컴퓨터 포트 9092에 매핑
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092 # 도커 외부에서 도는 API 서버가 카프카를 찾아갈 수 있음
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - app-network
+
+  # 6. Monitoring (Prometheus + Grafana) 로컬에만 띄우기
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+        - prometheus
     networks:
       - app-network
 

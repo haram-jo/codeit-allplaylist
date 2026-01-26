@@ -1,11 +1,11 @@
-package com.sprint.api.service.contents;
+package com.sprint.batch.service.contents;
 
-import com.sprint.api.dto.contents.TmdbMovieResponse;
-import com.sprint.api.entity.contents.ContentTag;
-import com.sprint.api.entity.contents.Contents;
-import com.sprint.api.entity.contents.Tag;
-import com.sprint.api.repository.contents.ContentsRepository;
-import com.sprint.api.repository.contents.TagRepository;
+import com.sprint.batch.dto.contents.TmdbMovieResponse; // DTO 연결
+import com.sprint.batch.entity.contents.ContentTag; // 엔티티 연결
+import com.sprint.batch.entity.contents.Contents;
+import com.sprint.batch.entity.contents.Tag;
+import com.sprint.batch.repository.contents.ContentsRepository; // 레포지토리 연결
+import com.sprint.batch.repository.contents.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

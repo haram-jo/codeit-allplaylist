@@ -28,6 +28,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	// ✅  Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -39,6 +40,18 @@ dependencies {
 	// ✅ MySql
 	implementation 'com.mysql:mysql-connector-j'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// ✅ JPA, MySQL
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// ✅ Actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// ✅ Micrometer
+	implementation 'io.micrometer:micrometer-core'
+
+	// ✅ Prometheus
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 

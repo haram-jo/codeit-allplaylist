@@ -30,16 +30,70 @@ public class ContentsRepositoryCustomImpl implements ContentsRepositoryCustom {
                                           String cursor, UUID idAfter, int limit,
                                           String sortBy, SortDirection sortDirection) {
 
+        // 1. 정렬 방향 결정 (기본값 DESC)
+        Order order = (sortDirection == SortDirection.ASCENDING) ? Order.ASC : Order.DESC;
+
         return queryFactory
                 .selectFrom(contents)
                 .where(
-                        typeEq(typeEqual),      // 상단 탭(영화, 스포츠 등) 필터
-                        titleLike(keywordLike),  // 검색창 키워드 필터
-                        cursorLt(cursor, sortBy) // 페이징 처리
+                        typeEq(typeEqual),
+                        titleLike(keywordLike),
+                        // 핵심: 복합 커서 조건
+                        cursorCondition(cursor, idAfter, sortBy, sortDirection)
                 )
                 .limit(limit + 1)
-                .orderBy(getOrderBy(sortBy, sortDirection), contents.id.asc())
+                // 중요: 메인 정렬 기준과 ID 정렬 기준의 방향을 반드시 일치시켜야 인덱스를 타고 중복이 없음
+                .orderBy(
+                        new OrderSpecifier<>(order, getSortPath(sortBy)),
+                        new OrderSpecifier<>(order, contents.id)
+                )
                 .fetch();
+    }
+
+    private BooleanExpression cursorCondition(String cursor, UUID idAfter, String sortBy, SortDirection direction) {
+        // 커서나 보조 커서(idAfter)가 없으면 첫 페이지로 간주
+        if (cursor == null || cursor.isEmpty() || idAfter == null) {
+            return null;
+        }
+
+        boolean isDesc = (direction == SortDirection.DESCENDING);
+
+        try {
+            // 1. 인기순 (watcherCount)
+            if ("watcherCount".equals(sortBy)) {
+                long count = Long.parseLong(cursor);
+                return isDesc
+                        ? contents.watcherCount.lt(count).or(contents.watcherCount.eq(count).and(contents.id.lt(idAfter)))
+                        : contents.watcherCount.gt(count).or(contents.watcherCount.eq(count).and(contents.id.gt(idAfter)));
+            }
+
+            // 2. 평점순 (rate 또는 averageRating) - 이미지 에러 해결 구간
+            if ("rate".equals(sortBy) || "averageRating".equals(sortBy)) {
+                // 소수점이 없는 정수형(int)이므로 Integer.parseInt 사용
+                int rating = Integer.parseInt(cursor);
+
+                return isDesc
+                        ? contents.averageRating.lt(rating).or(contents.averageRating.eq(rating).and(contents.id.lt(idAfter)))
+                        : contents.averageRating.gt(rating).or(contents.averageRating.eq(rating).and(contents.id.gt(idAfter)));
+            }
+
+            // 3. 최신순 (createdAt)
+            LocalDateTime time = LocalDateTime.parse(cursor);
+            return isDesc
+                    ? contents.createdAt.lt(time).or(contents.createdAt.eq(time).and(contents.id.lt(idAfter)))
+                    : contents.createdAt.gt(time).or(contents.createdAt.eq(time).and(contents.id.gt(idAfter)));
+
+        } catch (Exception e) {
+            // 파싱 중 에러 발생 시(데이터 포맷 불일치 등) 안전하게 첫 페이지 조회로 유도
+            return null;
+        }
+    }
+
+    // 정렬 경로 추출 헬퍼 메서드
+    private com.querydsl.core.types.dsl.ComparableExpressionBase<?> getSortPath(String sortBy) {
+        if ("watcherCount".equals(sortBy)) return contents.watcherCount;
+        if ("rate".equals(sortBy) || "averageRating".equals(sortBy)) return contents.averageRating;
+        return contents.createdAt;
     }
 
     // --- 필터 로직 (queryFactory가 쿼리를 만들 때 사용) ---
@@ -60,18 +114,22 @@ public class ContentsRepositoryCustomImpl implements ContentsRepositoryCustom {
     private BooleanExpression cursorLt(String cursor, String sortBy) {
         if (cursor == null || cursor.isEmpty()) return null;
 
-        //인기순
-        if ("watcherCount".equals(sortBy)) {
-            return contents.watcherCount.lt(Long.parseLong(cursor));
-        }
+        try {
+            if ("watcherCount".equals(sortBy)) {
+                return contents.watcherCount.lt(Long.parseLong(cursor));
+            }
 
-        //평점순
-        if ("averageRating".equals(sortBy)) {
-            return contents.averageRating.lt(Integer.parseInt(cursor));
-        }
+            if ("averageRating".equals(sortBy)) {
+                return contents.averageRating.lt(Integer.parseInt(cursor));
+            }
 
-        // 최신순
-        return contents.createdAt.lt(LocalDateTime.parse(cursor));
+            // 최신순
+            return contents.createdAt.lt(LocalDateTime.parse(cursor));
+
+        } catch (Exception e) {
+            // cursor 타입이 안 맞으면 첫 페이지로 간주
+            return null;
+        }
     }
 
     // 4. 정렬: 사용자가 UI에서 선택한 기준 적용

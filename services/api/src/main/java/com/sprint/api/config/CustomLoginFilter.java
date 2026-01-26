@@ -8,7 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/*  커스텀 로그인 Filter
+/**  커스텀 로그인 Filter
     - 사용자가 보낸 이메일과 비밀번호를 가로채서 인증 처리
     - application/x-www-form-urlencoded 형식에서
     - 아이디와 비밀번호를 추출하여 인증 토큰 생성

@@ -13,6 +13,9 @@ RUN ./gradlew bootJar -x test --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
+#application.docker-properties 실행하도록 > application.properties 보다 우선순위임
+ENV SPRING_PROFILES_ACTIVE=docker
+
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

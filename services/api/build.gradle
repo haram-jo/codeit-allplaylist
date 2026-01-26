@@ -60,7 +60,15 @@ dependencies {
 	// ✅ Spring Security (인증/인가 및 CSRF 기본 제공)
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
+	// ✅ kafka 환경 구성을 위한 설정
+	// Spring Kafka (핵심 라이브러리)
+	implementation 'org.springframework.kafka:spring-kafka'
 
+	// JSON 데이터를 객체로 편하게 변환하기 위한 Jackson (보통 기본 포함됨)
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// 테스트를 위한 설정 (선택 사항)
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 
 }
 
@@ -70,14 +78,6 @@ tasks.named('test') {
 
 // ✅ Querydsl QClass 생성 위치 설정
 def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
-
-sourceSets {
-	main.java.srcDirs += [ querydslDir ]
-}
-
-tasks.withType(JavaCompile) {
-	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
-}
 
 clean {
 	delete file(querydslDir)
