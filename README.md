@@ -21,23 +21,27 @@
 
 ## 🛠 기술 스택
 
-### Backend
+### Backend & Infrastructure
 - **Language**: Java 17
 - **Framework**: Spring Boot, Spring JPA, Spring Security, Spring Batch, QueryDSL
-- **Database**: MySQL (Amazon RDS)
-- **Caching & Messaging**: Redis (Amazon ElastiCache), Kafka (Confluent Cloud)
+- **Database**: MySQL (Amazon RDS), Redis (Amazon ElastiCache)
+- **Messaging**: Kafka (Confluent Cloud)
+- **DevOps**: AWS ECS (Fargate), ECR, S3, Route 53, ALB, GitHub Actions, Docker
 
-### Infrastructure & DevOps
-- **Cloud**: AWS ECS (Fargate), ECR, S3, Route 53, ALB
-- **CI/CD**: GitHub Actions, Docker, Docker Compose
-- **Monitoring**: Prometheus, Grafana, Spring Actuator
+![기술 스택](https://github.com/user-attachments/assets/86ea8dd6-e2ee-4b7c-bd93-ca4d2dd63c29)
 
 ---
 
 ## 🏗 시스템 아키텍처
+
+### Cloud Design
 - **분산 환경 설계**: Gateway(Nginx), API Service, Batch Service로 모듈을 분리하여 시스템 독립성 및 확장성 확보
-- **비동기 이벤트 기반 알림**: 
-  - `Producer(구독 이벤트)` -> `Kafka` -> `Consumer` -> `SSE(Server-Sent Events)`를 통한 실시간 알림 전달
+- **비동기 이벤트 기반 알림**: `Producer(구독 이벤트)` -> `Kafka` -> `Consumer` -> `SSE`를 통한 실시간 알림 전달
+
+![클라우드 설계](https://github.com/user-attachments/assets/157f3751-0b86-41dd-b578-bb9f1ec73ae2)
+
+### Database ERD
+![ERD 다이어그램](https://github.com/user-attachments/assets/ddf8af0e-3d33-4eab-903f-0e071e0e54ce)
 
 ---
 
